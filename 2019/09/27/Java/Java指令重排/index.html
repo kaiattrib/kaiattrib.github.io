@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Java指令重排 - Ponder Hub</title><meta description="1234567891011121314151617181920212223public class Main&amp;amp;#123;    static boolean mark &amp;#x3D; true;    public static void main(String[] args) throws InterruptedException &amp;amp;#123;        run();        &amp;#x2F;*加上这句会"><meta property="og:type" content="blog"><meta property="og:title" content="Java指令重排"><meta property="og:url" content="http://yoursite.com/2019/09/27/Java/Java%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92/"><meta property="og:site_name" content="Ponder Hub"><meta property="og:description" content="1234567891011121314151617181920212223public class Main&amp;amp;#123;    static boolean mark &amp;#x3D; true;    public static void main(String[] args) throws InterruptedException &amp;amp;#123;        run();        &amp;#x2F;*加上这句会"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/__mermaid_v3/eff949deb3f0bf0a6a4f0a0878270f99.svg#lake_card_v2=eyJjb2RlIjoiZ3JhcGggTFJcbuivjeazleWIhuaekC0tPuivreS5ieWIhuaekC0tPuS4remXtOS7o-eggeeUn-aIkC0tPuS4remXtOS7o-eggeS8mOWMli0tPuebruagh-S7o-eggeeUn-aIkCIsInR5cGUiOiJtZXJtYWlkIiwiaWQiOiJHd3BRTiIsInVybCI6Imh0dHBzOi8vY2RuLm5sYXJrLmNvbS95dXF1ZS9fX21lcm1haWRfdjMvZWZmOTQ5ZGViM2YwYmYwYTZhNGYwYTA4NzgyNzBmOTkuc3ZnIiwiY2FyZCI6ImRpYWdyYW0ifQ=="><meta property="article:published_time" content="2019-09-27T01:57:33.000Z"><meta property="article:modified_time" content="2020-04-29T16:10:52.471Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Java"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/__mermaid_v3/eff949deb3f0bf0a6a4f0a0878270f99.svg#lake_card_v2=eyJjb2RlIjoiZ3JhcGggTFJcbuivjeazleWIhuaekC0tPuivreS5ieWIhuaekC0tPuS4remXtOS7o-eggeeUn-aIkC0tPuS4remXtOS7o-eggeS8mOWMli0tPuebruagh-S7o-eggeeUn-aIkCIsInR5cGUiOiJtZXJtYWlkIiwiaWQiOiJHd3BRTiIsInVybCI6Imh0dHBzOi8vY2RuLm5sYXJrLmNvbS95dXF1ZS9fX21lcm1haWRfdjMvZWZmOTQ5ZGViM2YwYmYwYTZhNGYwYTA4NzgyNzBmOTkuc3ZnIiwiY2FyZCI6ImRpYWdyYW0ifQ=="><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/09/27/Java/Java%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92/"},"headline":"Ponder Hub","image":[],"datePublished":"2019-09-27T01:57:33.000Z","dateModified":"2020-04-29T16:10:52.471Z","author":{"@type":"Person","name":"Ken Chan"},"description":"1234567891011121314151617181920212223public class Main&amp;#123;    static boolean mark &#x3D; true;    public static void main(String[] args) throws InterruptedException &amp;#123;        run();        &#x2F;*加上这句会"}</script><link rel="canonical" href="http://yoursite.com/2019/09/27/Java/Java%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/vs2015.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/new_logo.png" alt="Ponder Hub" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/comments">留言</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib" style="font-size: 1.5em;"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-09-27T01:57:33.000Z" title="2019-09-27T01:57:33.000Z">2019-09-27</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a><span> / </span><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></span><span class="level-item">5 分钟 读完 (大约 776 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Java指令重排</h1><div class="content"><a id="more"></a>
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">boolean</span> mark = <span class="keyword">true</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        run();</span><br><span class="line">        <span class="comment">/*加上这句会怎么样？*/</span></span><br><span class="line">        <span class="comment">//Thread.sleep(100);</span></span><br><span class="line">        mrak = <span class="keyword">false</span>;</span><br><span class="line">        System.out.println(<span class="string">"main end"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">while</span> (mark)&#123;</span><br><span class="line">                    <span class="comment">//这里具体要做什么也会影响到结果</span></span><br><span class="line">                    i++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a name="5kAMa"></a></p>
+<h3 id="1-不加Thread-sleep-100"><a href="#1-不加Thread-sleep-100" class="headerlink" title="1.不加Thread.sleep(100)"></a>1.不加Thread.sleep(100)</h3><p>程序会正常结束，大多数情况下，在启动新线程的时候，主线程后面的会获得执行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">while</span> (run)&#123;</span><br><span class="line">                    System.out.println(<span class="string">"new thread start"</span>);</span><br><span class="line">                    i++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<p>通过验证发现， System.out.println(“new thread start”) 并不会输出。<br><a name="RKeoX"></a></p>
+<h3 id="2-加Thread-sleep-100"><a href="#2-加Thread-sleep-100" class="headerlink" title="2.加Thread.sleep(100)"></a>2.加Thread.sleep(100)</h3><p>奇怪的现象发生了。这时候，新开的线程不会结束。why？<br />编译的过程有</p>
+<p><img src="https://cdn.nlark.com/yuque/__mermaid_v3/eff949deb3f0bf0a6a4f0a0878270f99.svg#lake_card_v2=eyJjb2RlIjoiZ3JhcGggTFJcbuivjeazleWIhuaekC0tPuivreS5ieWIhuaekC0tPuS4remXtOS7o-eggeeUn-aIkC0tPuS4remXtOS7o-eggeS8mOWMli0tPuebruagh-S7o-eggeeUn-aIkCIsInR5cGUiOiJtZXJtYWlkIiwiaWQiOiJHd3BRTiIsInVybCI6Imh0dHBzOi8vY2RuLm5sYXJrLmNvbS95dXF1ZS9fX21lcm1haWRfdjMvZWZmOTQ5ZGViM2YwYmYwYTZhNGYwYTA4NzgyNzBmOTkuc3ZnIiwiY2FyZCI6ImRpYWdyYW0ifQ==" alt="">其中中间代码是和平台无关的，编译器在中间代码后面可以进行一些和平台无关的代码优化，在目标代码生成的时候，编译器当然也可以根据目标平台支持的特性进行优化，常见的指令重排可以是CPU流水线优化，IO重排等。当然JVM也会对你写的代码进行一些优化，发生在编译阶段和运行阶段都有可能。</p>
+<p>主要还是编译器以及CPU为了优化代码或者执行的效率而执行的优化操作；应用条件是单线程场景下，对于并发多线程场景下，指令重排会产生不确定的执行效果<br />(原文链接<a href="https://blog.csdn.net/blueheart20/article/details/52117761[链接](https://blog.csdn.net/blueheart20/article/details/52117761)">https://blog.csdn.net/blueheart20/article/details/52117761[链接](https://blog.csdn.net/blueheart20/article/details/52117761)</a>)</p>
+<p><a name="VEsx1"></a></p>
+<h3 id="3-如何防止指令重排"><a href="#3-如何防止指令重排" class="headerlink" title="3 如何防止指令重排?"></a>3 如何防止指令重排?</h3><pre><code>volatile关键字可以保证变量的可见性，因为对volatile的操作都在Main Memory中，而Main Memory是被所有线程所共享的，这里的代价就是牺牲了性能，无法利用寄存器或Cache，因为它们都不是全局的，无法保证可见性，可能产生脏读。&lt;br /&gt;   volatile还有一个作用就是局部阻止重排序的发生，对volatile变量的操作指令都不会被重排序，因为如果重排序，又可能产生可见性问题。&lt;br /&gt;   在保证可见性方面，锁（包括显式锁、对象锁）以及对原子变量的读写都可以确保变量的可见性。但是实现方式略有不同，例如同步锁保证得到锁时从内存里重新读入数据刷新缓存，释放锁时将数据写回内存以保数据可见，而volatile变量干脆都是读写内存。&lt;br /&gt;(原文链接：https://blog.csdn.net/blueheart20/article/details/52117761[链接](https://blog.csdn.net/blueheart20/article/details/52117761))</code></pre><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. <span class="keyword">static</span> <span class="keyword">volatile</span> <span class="keyword">boolean</span> run = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line"><span class="number">2</span>. 在run方法里面进行跨对象访问。也会避免当前这个优化</span><br></pre></td></tr></table></figure>
+
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Java/">Java</a></div><!--!--></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" href="/" style="background-color:rgba(255,128,62,.87);border-color:transparent;color:white;" target="_blank" rel="noopener"><span class="icon is-small"><i class="fas fa-coffee"></i></span><span>送我杯咖啡</span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2019/09/28/Java/%E5%85%B3%E4%BA%8E%E4%BF%AE%E6%94%B9%E5%92%8C%E4%BB%A3%E7%90%86Final%E7%B1%BB/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">关于修改和代理Final类和方法？</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/09/24/Java/%E4%BB%BF%E5%86%99%E4%B8%80%E4%B8%AAJavaThread%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><span class="level-item">仿写一个Java Thread 底层实现</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>China</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">31</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">7</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">10</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">8</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">13</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">11</span></span></a></li></ul></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-29T15:40:19.000Z">2020-04-29</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/29/LeetCode/zi-fu-chuan-de-pai-lie-lcof/">字符串的排列</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/LeetCode/">LeetCode</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-28T16:50:13.000Z">2020-04-29</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/29/Android/finishandestroy/">finish()和onDestroy() 区别什么？</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-28T15:08:13.000Z">2020-04-28</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/28/LeetCode/jian-sheng-zi-lcof/">剪绳子</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/LeetCode/">LeetCode</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-27T15:59:39.000Z">2020-04-27</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/27/Android/touchevent/">你是怎么收到 TouchEvent 的？</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-04-27T11:38:26.000Z">2020-04-27</time></p><p class="title is-6"><a class="link-muted" href="/2020/04/27/LeetCode/er-cha-shu-zhong-he-wei-mou-yi-zhi-de-lu-jing-lcof/">二叉树中和为某一值的路径</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/LeetCode/">LeetCode</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-1-不加Thread-sleep-100" href="#1-不加Thread-sleep-100"><span>1.不加Thread.sleep(100)</span></a></li><li><a class="is-flex toc-item" id="toc-item-2-加Thread-sleep-100" href="#2-加Thread-sleep-100"><span>2.加Thread.sleep(100)</span></a></li><li><a class="is-flex toc-item" id="toc-item-3-如何防止指令重排" href="#3-如何防止指令重排"><span>3 如何防止指令重排?</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/new_logo.png" alt="Ponder Hub" height="28"></a><p class="size-small"><span>&copy; 2020 Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="https://gw.alipayobjects.com/zos/rmsportal/XuVpGqBFxXplzvLjJBZB.svg"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
