@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>如何用AndroidStudio动态调试framework native 库代码？ - Keeplooking</title><meta description="1.前言之前有debug过jvm, 开发anroid 临时起意想能不能动态debug art虚拟机，代码是看不下去的，还是跑起来直观。其实调试其他native lib 的原理是一样的。网上也看到一些，受启发比较大的是这位大佬17年写的https:&amp;#x2F;&amp;#x2F;zhuanlan.zhihu.com&amp;#x2F;p&amp;#x2F;24867284, 在此先感谢一下他，自己也算是做一个较的，记录一下自己踩过的坑。以下全部基于Androi"><meta property="og:type" content="blog"><meta property="og:title" content="如何用AndroidStudio动态调试framework native 库代码？"><meta property="og:url" content="http://yoursite.com/2020/05/16/android-native-debug/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="1.前言之前有debug过jvm, 开发anroid 临时起意想能不能动态debug art虚拟机，代码是看不下去的，还是跑起来直观。其实调试其他native lib 的原理是一样的。网上也看到一些，受启发比较大的是这位大佬17年写的https:&amp;#x2F;&amp;#x2F;zhuanlan.zhihu.com&amp;#x2F;p&amp;#x2F;24867284, 在此先感谢一下他，自己也算是做一个较的，记录一下自己踩过的坑。以下全部基于Androi"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589557990181-a53c85dd-c9af-4fa7-92f5-abe4a30cd906.png#align=left&amp;display=inline&amp;height=569&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-15_23-52-33.png&amp;originHeight=569&amp;originWidth=1899&amp;size=98165&amp;status=done&amp;style=none&amp;width=1899"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589559172093-f374ec87-b160-42bb-9944-0f1f28fe5ddf.png#align=left&amp;display=inline&amp;height=754&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-16_00-12-27.png&amp;originHeight=754&amp;originWidth=1050&amp;size=108514&amp;status=done&amp;style=none&amp;width=1050"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589560320818-7dc00df4-1ded-4cdf-89b8-57970c8f2061.png#align=left&amp;display=inline&amp;height=1714&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-16_00-31-23.png&amp;originHeight=1714&amp;originWidth=3430&amp;size=718061&amp;status=done&amp;style=none&amp;width=3430"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589561419697-b7d8d045-8391-45bb-98e5-dbde0f482554.png#align=left&amp;display=inline&amp;height=1550&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-16_00-49-38.png&amp;originHeight=1550&amp;originWidth=2264&amp;size=589736&amp;status=done&amp;style=none&amp;width=2264"><meta property="article:published_time" content="2020-05-15T17:25:21.000Z"><meta property="article:modified_time" content="2020-05-15T17:29:09.004Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Android"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589557990181-a53c85dd-c9af-4fa7-92f5-abe4a30cd906.png#align=left&amp;display=inline&amp;height=569&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-15_23-52-33.png&amp;originHeight=569&amp;originWidth=1899&amp;size=98165&amp;status=done&amp;style=none&amp;width=1899"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2020/05/16/android-native-debug/"},"headline":"Keeplooking","image":[],"datePublished":"2020-05-15T17:25:21.000Z","dateModified":"2020-05-15T17:29:09.004Z","author":{"@type":"Person","name":"Ken Chan"},"description":"1.前言之前有debug过jvm, 开发anroid 临时起意想能不能动态debug art虚拟机，代码是看不下去的，还是跑起来直观。其实调试其他native lib 的原理是一样的。网上也看到一些，受启发比较大的是这位大佬17年写的https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;24867284, 在此先感谢一下他，自己也算是做一个较的，记录一下自己踩过的坑。以下全部基于Androi"}</script><link rel="canonical" href="http://yoursite.com/2020/05/16/android-native-debug/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/vs2015.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/comments">留言</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-05-15T17:25:21.000Z" title="2020-05-15T17:25:21.000Z">2020-05-16</time><span class="level-item"><a class="link-muted" href="/categories/Android/">Android</a></span><span class="level-item">11 分钟 读完 (大约 1719 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">如何用AndroidStudio动态调试framework native 库代码？</h1><div class="content"><p><a name="eUCyI"></a></p>
+<h2 id="1-前言"><a href="#1-前言" class="headerlink" title="1.前言"></a>1.前言</h2><p>之前有debug过jvm, 开发anroid 临时起意想能不能动态debug art虚拟机，代码是看不下去的，还是跑起来直观。其实调试其他native lib 的原理是一样的。网上也看到一些，受启发比较大的是这位大佬17年写的<a href="https://zhuanlan.zhihu.com/p/24867284">https://zhuanlan.zhihu.com/p/24867284</a>, 在此先感谢一下他，自己也算是做一个较的，记录一下自己踩过的坑。以下全部基于Android 9 。<br><br /></p>
+<p><a name="lL1oY"></a></p>
+<h2 id="2-编译Android-9-系统"><a href="#2-编译Android-9-系统" class="headerlink" title="2. 编译Android 9 系统"></a>2. 编译Android 9 系统</h2><p>这个有门槛，毕竟AOSP  超大。有个在64核服务器当然好，大概半个小时，全目录60GB左右，但是自己笔记本还是吃不消的，怎么拉下自己编译，还请google。如果只是想要原生这里有<a href="https://ci.android.com/">https://ci.android.com/</a>，AOSP google编译的，可以在里面直接下载AOSP编译文件，也比较大，且需要联网。如果你还有个pixel, 还可以用来刷机。<br />  <img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589557990181-a53c85dd-c9af-4fa7-92f5-abe4a30cd906.png#align=left&display=inline&height=569&margin=%5Bobject%20Object%5D&name=Xnip2020-05-15_23-52-33.png&originHeight=569&originWidth=1899&size=98165&status=done&style=none&width=1899" alt="Xnip2020-05-15_23-52-33.png"></p>
+<a id="more"></a>
+
+<ul>
+<li>自己有条件，可以编译</li>
+<li>从AOSP下载</li>
+<li>用别人给的，比如我<a href="https://github.com/kaiattrib/android_framework_native_debug">android_framework_native_debug</a></li>
+<li>不管怎么，当然要有目标库的源码最好，（哦，你不要的的话，😂 可以直接指令级debug，其实可以不用这么麻烦了，可以直接return ）</li>
+</ul>
+<p><a name="jzbfk"></a></p>
+<h2 id="3-准备一台手机"><a href="#3-准备一台手机" class="headerlink" title="3.准备一台手机"></a>3.准备一台手机</h2><ul>
+<li>可以刷机，那就刷自己编译的系统</li>
+<li>不能刷机 ，但可以root，看你是需要调试那个库，如果是其它库，你可能需要自己把编译好的so库push到手机</li>
+<li>不能root，同用的基础库才可以，比如本次我尝试的art库，libart.so 在2台手机 root和非root，刷机和不刷机的情况下都是可以的。想想厂商还是很少改动art的</li>
+</ul>
+<p><a name="bXPng"></a></p>
+<h2 id="4-新建一个AS工程"><a href="#4-新建一个AS工程" class="headerlink" title="4. 新建一个AS工程"></a>4. 新建一个AS工程</h2><p>   我们需要</p>
+<ul>
+<li><p>编译出来好的 目标so文件</p>
+</li>
+<li><p>AOSP 工程里面源码</p>
+</li>
+<li><p>编译出来的symbol 目录，里面对应的就是相应库的 debug标记文件，调试中需要用到。找到对应的libart.so。对比大小你就会发现，一个是7mb，一个是150mb。拷贝出来，可以放到工程目录下</p>
+<p> <br />当然也可以用你现在的工程，只要是方便debug，查看源码，进行native debug。可以先导入 art 源码到工程里面，可以参考<a href="https://github.com/kaiattrib/android_framework_native_debug">android_framework_native_debug</a>样式。主要是通过AS里面的debug attach 到选择的进程，就可以进行相应的进程debug了。<br /> <img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589559172093-f374ec87-b160-42bb-9944-0f1f28fe5ddf.png#align=left&display=inline&height=754&margin=%5Bobject%20Object%5D&name=Xnip2020-05-16_00-12-27.png&originHeight=754&originWidth=1050&size=108514&status=done&style=none&width=1050" alt="Xnip2020-05-16_00-12-27.png"><br><a name="DuRfV"></a></p>
+<h2 id="5-将目标库PUSH到手机"><a href="#5-将目标库PUSH到手机" class="headerlink" title="5.将目标库PUSH到手机"></a>5.将目标库PUSH到手机</h2><p>  当然也可以不用，比如我在另外一台其它品牌不能root的手机上测试，art库可以直接使用。如果你其它库，建议可以尝试。<br /></p>
+</li>
+</ul>
+<p><a name="LnzNp"></a></p>
+<h2 id="6-Attach到目标进程Debug"><a href="#6-Attach到目标进程Debug" class="headerlink" title="6.Attach到目标进程Debug"></a>6.Attach到目标进程Debug</h2><pre><code>本[android_framework_native_debug](https://github.com/kaiattrib/android_framework_native_debug)工程先写了一个native code ，方便打上断掉，寻找入库，你也可以不用，直接pause也是可以的。&lt;br /&gt;选择带native，可以是dual，等待lldb连接成功。&lt;br /&gt; ![Xnip2020-05-16_00-20-07.png](https://cdn.nlark.com/yuque/0/2020/png/501385/1589559645183-3d9e2d39-a854-4685-9621-b12d9ac860d2.png#align=left&amp;display=inline&amp;height=643&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-16_00-20-07.png&amp;originHeight=1134&amp;originWidth=772&amp;size=112011&amp;status=done&amp;style=none&amp;width=438)</code></pre><ul>
+<li><p>等待lldb连接成功，点击触发</p>
+</li>
+<li><p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589560320818-7dc00df4-1ded-4cdf-89b8-57970c8f2061.png#align=left&display=inline&height=1714&margin=%5Bobject%20Object%5D&name=Xnip2020-05-16_00-31-23.png&originHeight=1714&originWidth=3430&size=718061&status=done&style=none&width=3430" alt="Xnip2020-05-16_00-31-23.png"></p>
+</li>
+<li><p>但是现在看到，栈还没有行号信息，我们自己写的native代码，才有</p>
+</li>
+<li><br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">::Java_com_test_CustomizeThread_start(JNIEnv , jobject) native-lib.cpp:<span class="number">38</span> <span class="comment">//这里有行号，</span></span><br><span class="line">art_quick_generic_jni_trampoline <span class="number">0x0000006f4bb9b9e4</span> <span class="comment">//这里只有地址</span></span><br><span class="line">art_quick_invoke_stub <span class="number">0x0000006f4bb9298c</span></span><br><span class="line">art::ArtMethod::Invoke(art::Thread, <span class="keyword">unsigned</span> <span class="keyword">int</span>, <span class="keyword">unsigned</span> <span class="keyword">int</span>, art::JValue, <span class="keyword">char</span> <span class="keyword">const</span>) <span class="number">0x0000006f4b70c6cc</span></span><br><span class="line">art::interpreter::ArtInterpreterToCompiledCodeBridge(art::Thread, art::ArtMethod, art::ShadowFrame, <span class="keyword">unsigned</span> short, art::JValue) <span class="number">0x0000006f4b8bcab8</span></span><br><span class="line"><span class="keyword">bool</span> art::interpreter::DoCall&lt;<span class="literal">false</span>, <span class="literal">false</span>&gt;(art::ArtMethod, art::Thread, art::ShadowFrame&amp;,</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们继续进入，force step into </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">art::(anonymous <span class="keyword">namespace</span>)::CheckJNI::FindClass(_JNIEnv*, <span class="keyword">char</span> <span class="keyword">const</span>*) <span class="number">0x0000006f4b71e728</span></span><br><span class="line">_JNIEnv::FindClass(<span class="keyword">char</span> <span class="keyword">const</span>*) jni.h:<span class="number">504</span></span><br><span class="line">::Java_com_test_CustomizeThread_start(JNIEnv *, jobject) native-lib.cpp:<span class="number">38</span></span><br><span class="line">art_quick_generic_jni_trampoline <span class="number">0x0000006f4bb9b9e4</span></span><br><span class="line">art_quick_invoke_stub <span class="number">0x0000006f4bb9298c</span></span><br><span class="line">---</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可以看到，又没有源码信息了,接下来我们手动加入符号信息库</p>
+</li>
+<li><p>通过 d -p 反编译，可以知道我们当前pc所在的库和函数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">(lldb) d -p</span><br><span class="line">libart.so`art::(anonymous namespace)::CheckJNI::FindClass:</span><br><span class="line">-&gt;  0x6f4b71e728 &lt;+4&gt;:  stp    x28, x27, [sp, <span class="comment">#0x70]</span></span><br><span class="line">    0x6f4b71e72c &lt;+8&gt;:  stp    x26, x25, [sp, <span class="comment">#0x80]</span></span><br><span class="line">    0x6f4b71e730 &lt;+12&gt;: stp    x24, x23, [sp, <span class="comment">#0x90]</span></span><br><span class="line">    0x6f4b71e734 &lt;+16&gt;: stp    x22, x21, [sp, <span class="comment">#0xa0]</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>手动加入符号信息库, 有下面信息，说明ok</p>
+</li>
+<li><p>报错就是目标so不符合</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(lldb) add-dsym /Users/kenchan/GitHub/android_framework_native_debug/symbol/libart.so</span><br><span class="line">symbol file <span class="string">'/Users/kenchan/GitHub/android_framework_native_debug/symbol/libart.so'</span> has been added to <span class="string">'/Users/kenchan/.lldb/module_cache/remote-android/.cache/88B6A7B4-8B23-9260-2988-33B24671013C/libart.so'</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<ul>
+<li><p>通过souce info 查看一下 对应的源码信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(lldb) <span class="built_in">source</span> info</span><br><span class="line">Lines found <span class="keyword">in</span> module `libart.so</span><br><span class="line">[0x0000006f4b71e714-0x0000006f4b71e750): art/runtime/scoped_thread_state_change-inl.h:38:5</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可以看到目录信息，这里linux下是绝对路径。所以我们要做一下映射</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) settings <span class="built_in">set</span> target.source-map art/ /Users/kenchan/GitHub/android_framework_native_debug/art</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>你再点击一下 setp，就会发现调用栈里面有 源码文件信息了</p>
+</li>
+<li><p>我们点击某一个调用栈，就是发现 跳转了源码文件了</p>
+</li>
+<li><p>现在的调用栈是</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">std</span>::__1::basic_ostream&lt;<span class="keyword">char</span>, <span class="built_in">std</span>::__1::char_traits&lt;<span class="keyword">char</span>&gt; &gt;&amp; <span class="built_in">std</span>::__1::<span class="keyword">operator</span>&lt;&lt;&lt;<span class="built_in">std</span>::__1::char_traits&lt;<span class="keyword">char</span>&gt; &gt;(<span class="built_in">std</span>::__1::basic_ostream&lt;<span class="keyword">char</span>, <span class="built_in">std</span>::__1::char_traits&lt;<span class="keyword">char</span>&gt; &gt;&amp;, <span class="keyword">char</span> <span class="keyword">const</span>*) <span class="number">0x0000006f4b71e750</span></span><br><span class="line">art::ScopedThreadStateChange::ScopedThreadStateChange(art::Thread*, art::ThreadState) scoped_thread_state_change-inl.h:<span class="number">38</span></span><br><span class="line">art::ScopedObjectAccessUnchecked::ScopedObjectAccessUnchecked(_JNIEnv*) scoped_thread_state_change-inl.h:<span class="number">108</span></span><br><span class="line">art::ScopedObjectAccess::ScopedObjectAccess(_JNIEnv*) scoped_thread_state_change-inl.h:<span class="number">119</span></span><br><span class="line">art::(anonymous <span class="keyword">namespace</span>)::CheckJNI::DefineClass(_JNIEnv*, <span class="keyword">char</span> <span class="keyword">const</span>*, _jobject*, <span class="keyword">signed</span> <span class="keyword">char</span> <span class="keyword">const</span>*, <span class="keyword">int</span>) check_jni.cc:<span class="number">1824</span></span><br><span class="line">_JNIEnv::FindClass(<span class="keyword">char</span> <span class="keyword">const</span>*) jni.h:<span class="number">504</span></span><br><span class="line">::Java_com_test_CustomizeThread_start(JNIEnv *, jobject) native-lib.cpp:<span class="number">38</span></span><br><span class="line">art_quick_alloc_array_resolved32_tlab <span class="number">0x0000006f4bb9b9e4</span></span><br><span class="line">art_quick_throw_string_bounds <span class="number">0x0000006f4bb9298c</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589561419697-b7d8d045-8391-45bb-98e5-dbde0f482554.png#align=left&display=inline&height=1550&margin=%5Bobject%20Object%5D&name=Xnip2020-05-16_00-49-38.png&originHeight=1550&originWidth=2264&size=589736&status=done&style=none&width=2264" alt="Xnip2020-05-16_00-49-38.png"></p>
+</li>
+</ul>
+<p><br />  接下来就是正常debug了<br><a name="68TB9"></a></p>
+<h2 id="7-你可以用本android-framework-native-debug工程做什么？"><a href="#7-你可以用本android-framework-native-debug工程做什么？" class="headerlink" title="7. 你可以用本android_framework_native_debug工程做什么？"></a>7. 你可以用本<a href="https://github.com/kaiattrib/android_framework_native_debug">android_framework_native_debug</a>工程做什么？</h2><ul>
+<li>如果你的手机也是 anroid 9.0</li>
+<li>如果你也是想debug art</li>
+<li>你可以直接下载运行本工程，按步骤即可，不需要root，不需要push</li>
+<li>我编译的是arm平台的，所以在模拟器里面不行<br><a name="O4GH2"></a><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><a href="https://zhuanlan.zhihu.com/p/24867284">https://zhuanlan.zhihu.com/p/24867284</a><br /></li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Android/">Android</a></div><!--!--></article></div><div class="card"><div class="card-content"><h3 class="menu-label has-text-centered">喜欢这篇文章？打赏一下作者吧</h3><div class="buttons is-centered"><a class="button donate" href="/" style="background-color:rgba(255,128,62,.87);border-color:transparent;color:white;" target="_blank" rel="noopener"><span class="icon is-small"><i class="fas fa-coffee"></i></span><span>送我杯咖啡</span></a></div></div></div><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/05/13/LeetCode/%E6%95%B0%E7%BB%84%E4%B8%AD%E7%9A%84%E9%80%86%E5%BA%8F%E5%AF%B9/"><span class="level-item">数组中的逆序对</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">44</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">7</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">10</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">8</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">15</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">13</span></span></a></li></ul></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2020-05-15T17:25:21.000Z">2020-05-16</time></p><p class="title is-6"><a class="link-muted" href="/2020/05/16/android-native-debug/">如何用AndroidStudio动态调试framework native 库代码？</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-05-13T14:27:06.000Z">2020-05-13</time></p><p class="title is-6"><a class="link-muted" href="/2020/05/13/LeetCode/%E6%95%B0%E7%BB%84%E4%B8%AD%E7%9A%84%E9%80%86%E5%BA%8F%E5%AF%B9/">数组中的逆序对</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/LeetCode/">LeetCode</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-05-10T13:06:28.000Z">2020-05-10</time></p><p class="title is-6"><a class="link-muted" href="/2020/05/10/LeetCode/%E7%9F%A9%E9%98%B5%E4%B8%AD%E7%9A%84%E8%B7%AF%E5%BE%84/">矩阵中的路径</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/LeetCode/">LeetCode</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-05-07T14:01:34.000Z">2020-05-07</time></p><p class="title is-6"><a class="link-muted" href="/2020/05/07/Android/%E6%80%8E%E4%B9%88debugrelase%E5%8C%85smail/">怎么debug relase包 smail？</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-05-07T11:35:16.000Z">2020-05-07</time></p><p class="title is-6"><a class="link-muted" href="/2020/05/07/LeetCode/%E6%9C%80%E9%95%BF%E4%B8%8D%E5%90%AB%E9%87%8D%E5%A4%8D%E5%AD%97%E7%AC%A6%E7%9A%84%E5%AD%90%E5%AD%97%E7%AC%A6%E4%B8%B2/">最长不含重复字符的子字符串</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/LeetCode/">LeetCode</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">8</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">13</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-1-前言" href="#1-前言"><span>1.前言</span></a></li><li><a class="is-flex toc-item" id="toc-item-2-编译Android-9-系统" href="#2-编译Android-9-系统"><span>2. 编译Android 9 系统</span></a></li><li><a class="is-flex toc-item" id="toc-item-3-准备一台手机" href="#3-准备一台手机"><span>3.准备一台手机</span></a></li><li><a class="is-flex toc-item" id="toc-item-4-新建一个AS工程" href="#4-新建一个AS工程"><span>4. 新建一个AS工程</span></a></li><li><a class="is-flex toc-item" id="toc-item-5-将目标库PUSH到手机" href="#5-将目标库PUSH到手机"><span>5.将目标库PUSH到手机</span></a></li><li><a class="is-flex toc-item" id="toc-item-6-Attach到目标进程Debug" href="#6-Attach到目标进程Debug"><span>6.Attach到目标进程Debug</span></a></li><li><a class="is-flex toc-item" id="toc-item-7-你可以用本android-framework-native-debug工程做什么？" href="#7-你可以用本android-framework-native-debug工程做什么？"><span>7. 你可以用本android_framework_native_debug工程做什么？</span></a></li><li><a class="is-flex toc-item" id="toc-item-参考" href="#参考"><span>参考</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2020  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
