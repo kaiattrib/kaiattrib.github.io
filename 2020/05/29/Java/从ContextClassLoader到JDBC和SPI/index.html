@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>从ContextClassLoader到JDBC和SPI - Keeplooking</title><meta description="SystemClassLoader可以jvm参数  java.system.class.loader 设置默认的系统加载器，默认是当前线程的ContextClassLoader。来自sun.misc.Launcher.getLauncher的getClassLoader, 而getLauncher的getClassLoader实际来自Launcher.AppClassLoader.getAppCl"><meta property="og:type" content="blog"><meta property="og:title" content="从ContextClassLoader到JDBC和SPI"><meta property="og:url" content="http://yoursite.com/2020/05/29/Java/%E4%BB%8EContextClassLoader%E5%88%B0JDBC%E5%92%8CSPI/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="SystemClassLoader可以jvm参数  java.system.class.loader 设置默认的系统加载器，默认是当前线程的ContextClassLoader。来自sun.misc.Launcher.getLauncher的getClassLoader, 而getLauncher的getClassLoader实际来自Launcher.AppClassLoader.getAppCl"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590761403960-5d5bdc7b-0b69-4a7f-b3bb-56d41783a774.png#align=left&amp;display=inline&amp;height=349&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=698&amp;originWidth=894&amp;size=88124&amp;status=done&amp;style=none&amp;width=447"><meta property="article:published_time" content="2020-05-29T15:40:01.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.962Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Bug"><meta property="article:tag" content="Java"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590761403960-5d5bdc7b-0b69-4a7f-b3bb-56d41783a774.png#align=left&amp;display=inline&amp;height=349&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=698&amp;originWidth=894&amp;size=88124&amp;status=done&amp;style=none&amp;width=447"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2020/05/29/Java/%E4%BB%8EContextClassLoader%E5%88%B0JDBC%E5%92%8CSPI/"},"headline":"Keeplooking","image":[],"datePublished":"2020-05-29T15:40:01.000Z","dateModified":"2023-05-14T07:53:19.962Z","author":{"@type":"Person","name":"Ken Chan"},"description":"SystemClassLoader可以jvm参数  java.system.class.loader 设置默认的系统加载器，默认是当前线程的ContextClassLoader。来自sun.misc.Launcher.getLauncher的getClassLoader, 而getLauncher的getClassLoader实际来自Launcher.AppClassLoader.getAppCl"}</script><link rel="canonical" href="http://yoursite.com/2020/05/29/Java/%E4%BB%8EContextClassLoader%E5%88%B0JDBC%E5%92%8CSPI/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-05-29T15:40:01.000Z" title="2020-05-29T15:40:01.000Z">2020-05-29</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a><span> / </span><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></span><span class="level-item">10 分钟 读完 (大约 1428 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">从ContextClassLoader到JDBC和SPI</h1><div class="content"><h2 id="SystemClassLoader"><a href="#SystemClassLoader" class="headerlink" title="SystemClassLoader"></a>SystemClassLoader</h2><p>可以jvm参数  java.system.class.loader 设置默认的系统加载器，默认是当前线程的ContextClassLoader。来自sun.misc.Launcher.getLauncher的getClassLoader, 而getLauncher的getClassLoader实际来自Launcher.AppClassLoader.getAppClassLoader。<br /></p>
+<a id="more"></a>
+
+<h2 id="ContextClassLoader"><a href="#ContextClassLoader" class="headerlink" title="ContextClassLoader"></a>ContextClassLoader</h2><ul>
+<li>主要用于打破双亲模型<br>一个典型的例子就是JDBC，JDBC的规范类是在rt.jar包里面的，默认是由BootstrapClassLoadr加载的，所以JDBC所依赖的类，比如我们自己实现的MYSQL，也应该是由BootstrapClassLoadr来加载，但是我们的MYSQL包路径并不在BootstrapClassLoadr加载的路径当中，这样就会出现找不到类的情况。所以在这种情况下面，我们就需要打破双亲委派模型，ContextClassLoader就应运而生。在BootstrapClassLoadr加载不到的情形下面，由BootstrapClassLoadr转接到当前线程的ContextClassLoader来加载。在SPI场合下都会出现，SPI就是JDK提供接口，具体实现由各个厂商实现，最后由ServiceLoader来进行加载。<br /><br />
+
+</li>
+</ul>
+<h2 id="SPI的关键，ServiceLoader"><a href="#SPI的关键，ServiceLoader" class="headerlink" title="SPI的关键，ServiceLoader"></a>SPI的关键，ServiceLoader</h2><ul>
+<li><p>SPI的具体实现，也就是jar包在service由ServiceLoader的load方法出触发</p>
+</li>
+<li><p>声明，泛型，且实现了迭代接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ServiceLoader</span>&lt;<span class="title">S</span>&gt;  <span class="keyword">implements</span> <span class="title">Iterable</span>&lt;<span class="title">S</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们可以看一下jdoc里面的描述</p>
+</li>
+<li><p>A service provider is identified by placing a provider-configuration file in the resource directory <strong>META-INF/services</strong>. The file’s name is the fully-qualified binary name of the service’s type. The file contains a list of** fully-qualified binary names of concrete provider classes**, one per line. Space and tab characters surrounding each name, as well as blank lines, are ignored. The comment character is ‘#’ (‘\u0023’, NUMBER SIGN); on each line all characters following the first comment character are ignored. The file must be encoded in UTF-8.</p>
+</li>
+<li><p>这实际上就描述了，service的接口和具体实现类声明具体位置。<br><a name="L7arm"></a></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a><br /></h2><p><a name="4NipE"></a></p>
+<h2 id="跟踪JDBC加载的过程"><a href="#跟踪JDBC加载的过程" class="headerlink" title="跟踪JDBC加载的过程"></a>跟踪JDBC加载的过程</h2></li>
+<li><p>首先引入myql和oracle的JDBC包</p>
+</li>
+<li><p>安装过程中发现maven pom导入失败  mvn 手动安装 </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn install:install-file -Dfile=/Users/kenchan/ojdbc7-12.1.0.2.jar -DgroupId=oracle -DartifactId=ojdbc7 -Dversion=12.1.0.2 -Dpackaging=jar</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>接口就是 java.sql.Driver，是JDK实现的规范。</p>
+</li>
+<li><p>我们可以看到mysql和oracle的jar 包中的service声明</p>
+</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590761403960-5d5bdc7b-0b69-4a7f-b3bb-56d41783a774.png#align=left&display=inline&height=349&margin=%5Bobject%20Object%5D&name=image.png&originHeight=698&originWidth=894&size=88124&status=done&style=none&width=447" alt="image.png"></p>
+<ul>
+<li>具体的实现类分别是 com.mysql.cj.jdbc.Driver ，oracle.jdbc.OracleDriver类</li>
+</ul>
+<ul>
+<li><p>测试代码，我们用ServiceLoader.load去加载一次java.sql.Driver.class</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ServiceLoader服务提供者，加载实现的服务</span></span><br><span class="line">       ServiceLoader&lt;java.sql.Driver&gt; loader = ServiceLoader.load(java.sql.Driver<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">       <span class="keyword">for</span> (java.sql.Driver driver : loader) &#123;</span><br><span class="line">           System.out.println(<span class="string">"driver:"</span> + driver.getClass() + <span class="string">",loader"</span> + driver.getClass().getClassLoader());</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可以看到我们就是把jar包导入环境，什么都没做，就已经显示加载成功了JDBC的2个实现对象</p>
+</li>
+<li><p>而且可以看到他是由AppClassLoader加载的，但java.sql.Driver是由BoostrapClassLoader加载的。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">driver:class com.mysql.cj.jdbc.Driver,loadersun.misc.Launcher<span class="variable">$AppClassLoader</span>@135fbaa4</span><br><span class="line">driver:class oracle.jdbc.OracleDriver,loadersun.misc.Launcher<span class="variable">$AppClassLoader</span>@135fbaa4</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<ul>
+<li><p>首先可以看到 ** java.util.ServiceLoader#load(java.lang.Class)**</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在这里去获取了 ContextClassLoader</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;S&gt; <span class="function">ServiceLoader&lt;S&gt; <span class="title">load</span><span class="params">(Class&lt;S&gt; service)</span> </span>&#123;</span><br><span class="line">        ClassLoader cl = Thread.currentThread().getContextClassLoader();</span><br><span class="line">        <span class="keyword">return</span> ServiceLoader.load(service, cl);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>转接到java.util.ServiceLoader#ServiceLoader(Class svc, ClassLoader cl)</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">ServiceLoader</span><span class="params">(Class&lt;S&gt; svc, ClassLoader cl)</span> </span>&#123;</span><br><span class="line">       <span class="comment">//如果线程 ContextClassLoader 为null，则选用SystemClassLoader，也就是AppClassLoader去加载</span></span><br><span class="line">       loader = (cl == <span class="keyword">null</span>) ? ClassLoader.getSystemClassLoader() : cl;</span><br><span class="line">       acc = (System.getSecurityManager() != <span class="keyword">null</span>) ? AccessController.getContext() : <span class="keyword">null</span>;</span><br><span class="line">       reload();</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>reload()里面是new了一个LazyIterator 就走了。实际加载是使用的时候，及时调用迭代器next获取的时候，</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> S <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (acc == <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">//就是这里</span></span><br><span class="line">                <span class="keyword">return</span> nextService();</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                PrivilegedAction&lt;S&gt; action = <span class="keyword">new</span> PrivilegedAction&lt;S&gt;() &#123;</span><br><span class="line">                    <span class="function"><span class="keyword">public</span> S <span class="title">run</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> nextService(); &#125;</span><br><span class="line">                &#125;;</span><br><span class="line">                <span class="keyword">return</span> AccessController.doPrivileged(action, acc);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>在java.util.ServiceLoader.LazyIterator#hasNextService 里面做了扫描，从<strong>META-INF/services/里面去读取具体的实现类，</strong>保留了nextName</p>
+</li>
+<li><p>那ServiceLoader怎么知道只加载JDBC呢？其它的service它不加载？？？ 这就是通过String fullName = _PREFIX _+ service.getName();限定来获取的，service.getName() 我们传入的泛型及时service就是java.sql.Driver，也可以从上面看到jar包中的service下的文件名就是接口。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">hasNextService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">           <span class="keyword">if</span> (nextName != <span class="keyword">null</span>) &#123;</span><br><span class="line">               <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">if</span> (configs == <span class="keyword">null</span>) &#123;</span><br><span class="line">               <span class="keyword">try</span> &#123;</span><br><span class="line">                   <span class="comment">//熟悉的样子，这里就是从META-INF/services/获取具体的类限定名</span></span><br><span class="line">                   String fullName = PREFIX + service.getName();</span><br><span class="line">                   <span class="comment">//这里就是去读到了具体的实现类名称</span></span><br><span class="line">                   <span class="keyword">if</span> (loader == <span class="keyword">null</span>)</span><br><span class="line">                       configs = ClassLoader.getSystemResources(fullName);</span><br><span class="line">                   <span class="keyword">else</span></span><br><span class="line">                       configs = loader.getResources(fullName);</span><br><span class="line">               &#125; <span class="keyword">catch</span> (IOException x) &#123;</span><br><span class="line">                   fail(service, <span class="string">"Error locating configuration files"</span>, x);</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">while</span> ((pending == <span class="keyword">null</span>) || !pending.hasNext()) &#123;</span><br><span class="line">               <span class="keyword">if</span> (!configs.hasMoreElements()) &#123;</span><br><span class="line">                   <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">               &#125;</span><br><span class="line">               pending = parse(service, configs.nextElement());</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="comment">//比如这里就可能获取到com.mysql.cj.jdbc.Driver</span></span><br><span class="line">           nextName = pending.next();</span><br><span class="line">           <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>转接到 java.util.ServiceLoader.LazyIterator#nextService 里面，这里实际上就是通过反射做了真正的加载</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> S <span class="title">nextService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (!hasNextService())</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchElementException();</span><br><span class="line">            </span><br><span class="line">            <span class="comment">//nextName就是上面获取到的</span></span><br><span class="line">            String cn = nextName;</span><br><span class="line">            nextName = <span class="keyword">null</span>;</span><br><span class="line">            Class&lt;?&gt; c = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">//这里反射获取，可以看到用到了loader 就是ContextClassLoader。</span></span><br><span class="line">                c = Class.forName(cn, <span class="keyword">false</span>, loader);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (ClassNotFoundException x) &#123;</span><br><span class="line">                fail(service,</span><br><span class="line">                     <span class="string">"Provider "</span> + cn + <span class="string">" not found"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (!service.isAssignableFrom(c)) &#123;</span><br><span class="line">                fail(service,</span><br><span class="line">                     <span class="string">"Provider "</span> + cn  + <span class="string">" not a subtype"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//通过反射，利用我们自定的ContextClassLoader 做了加载之后，就是利用反射生成一个实例，放到缓里面</span></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                S p = service.cast(c.newInstance());</span><br><span class="line">                providers.put(cn, p);</span><br><span class="line">                <span class="keyword">return</span> p;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable x) &#123;</span><br><span class="line">                fail(service,</span><br><span class="line">                     <span class="string">"Provider "</span> + cn + <span class="string">" could not be instantiated"</span>,</span><br><span class="line">                     x);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Error();          <span class="comment">// This cannot happen</span></span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>到此，JDBC的实现类加载完毕</p>
+</li>
+<li><p>我们用JDBC 没有像这样去掉loader啊？？？其实你在用java.sql.DriverManager的时候，java.sql.DriverManager#loadInitialDrivers里面 调用了ServiceLoader.<em>load</em>(Driver.class);</p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>双亲委派模型在SPI机制下面缺陷，不能加载具体的实现类</li>
+<li>JDK采用ContextClassLoader可以让我们自定加载器去加载具体的实现类</li>
+<li>具体的实现类，归结到反射方法，可以让加载类的时候，指定具体的ClassLoader<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Class&lt;?&gt; forName(String name, <span class="keyword">boolean</span> initialize,ClassLoader loader)</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Bug/">Bug</a><a class="link-muted mr-2" rel="tag" href="/tags/Java/">Java</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/06/05/Android/%E5%BF%AB%E9%80%9F%E7%82%B9%E5%87%BBStartActivity%E5%BC%95%E5%8F%91%E7%9A%84%E8%AF%AF%E4%BC%9A/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">快速点击StartActivity引发的误会</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/05/19/Android/AttachCurrentThread/"><span class="level-item">JNI为什么要调用AttachCurrentThread？</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-SystemClassLoader" href="#SystemClassLoader"><span>SystemClassLoader</span></a></li><li><a class="is-flex toc-item" id="toc-item-ContextClassLoader" href="#ContextClassLoader"><span>ContextClassLoader</span></a></li><li><a class="is-flex toc-item" id="toc-item-SPI的关键，ServiceLoader" href="#SPI的关键，ServiceLoader"><span>SPI的关键，ServiceLoader</span></a></li><li><a class="is-flex toc-item" id="toc-item-" href="#"><span>
+</span></a></li><li><a class="is-flex toc-item" id="toc-item-跟踪JDBC加载的过程" href="#跟踪JDBC加载的过程"><span>跟踪JDBC加载的过程</span></a></li><li><a class="is-flex toc-item" id="toc-item-总结" href="#总结"><span>总结</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

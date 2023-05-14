@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>怎么debug wechat-release.apk？ - Keeplooking</title><meta description="debug是指在smail层面，类似字节码层面。"><meta property="og:type" content="blog"><meta property="og:title" content="怎么debug wechat-release.apk？"><meta property="og:url" content="http://yoursite.com/2020/05/07/Android/%E6%80%8E%E4%B9%88debugrelase%E5%8C%85smail/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="debug是指在smail层面，类似字节码层面。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506065708-32c2879f-b0f4-42cd-87b4-e2a3c1002695.png#align=left&amp;display=inline&amp;height=782&amp;margin=%5Bobject%20Object%5D&amp;name=SSSSSS5.png&amp;originHeight=782&amp;originWidth=692&amp;size=33984&amp;status=done&amp;style=none&amp;width=692"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506097680-bf44b7f3-dbbe-4c03-a547-aabb442e980f.png#align=left&amp;display=inline&amp;height=648&amp;margin=%5Bobject%20Object%5D&amp;name=SSSSSS2.png&amp;originHeight=648&amp;originWidth=1217&amp;size=54043&amp;status=done&amp;style=none&amp;width=1217"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506121954-80e77b8d-91fb-4e15-aa4e-92f89da2d75e.png#align=left&amp;display=inline&amp;height=239&amp;margin=%5Bobject%20Object%5D&amp;name=SSSSSS1.png&amp;originHeight=239&amp;originWidth=1024&amp;size=32833&amp;status=done&amp;style=none&amp;width=1024"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506140128-1fa808c0-1df7-46b0-ab59-1b5caa719129.png#align=left&amp;display=inline&amp;height=222&amp;margin=%5Bobject%20Object%5D&amp;name=SSSSSS3.png&amp;originHeight=222&amp;originWidth=457&amp;size=9483&amp;status=done&amp;style=none&amp;width=457"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/501385/1590506147462-ef08c3ce-73e4-4f2d-bf38-423c3199fe16.jpeg#align=left&amp;display=inline&amp;height=492&amp;margin=%5Bobject%20Object%5D&amp;name=SSSSSS6.jpg&amp;originHeight=492&amp;originWidth=984&amp;size=36575&amp;status=done&amp;style=none&amp;width=984"><meta property="article:published_time" content="2020-05-07T14:01:34.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.959Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Android"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506065708-32c2879f-b0f4-42cd-87b4-e2a3c1002695.png#align=left&amp;display=inline&amp;height=782&amp;margin=%5Bobject%20Object%5D&amp;name=SSSSSS5.png&amp;originHeight=782&amp;originWidth=692&amp;size=33984&amp;status=done&amp;style=none&amp;width=692"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2020/05/07/Android/%E6%80%8E%E4%B9%88debugrelase%E5%8C%85smail/"},"headline":"Keeplooking","image":[],"datePublished":"2020-05-07T14:01:34.000Z","dateModified":"2023-05-14T07:53:19.959Z","author":{"@type":"Person","name":"Ken Chan"},"description":"debug是指在smail层面，类似字节码层面。"}</script><link rel="canonical" href="http://yoursite.com/2020/05/07/Android/%E6%80%8E%E4%B9%88debugrelase%E5%8C%85smail/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-05-07T14:01:34.000Z" title="2020-05-07T14:01:34.000Z">2020-05-07</time><span class="level-item"><a class="link-muted" href="/categories/Android/">Android</a></span><span class="level-item">4 分钟 读完 (大约 663 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">怎么debug wechat-release.apk？</h1><div class="content"><ul>
+<li>debug是指在smail层面，类似字节码层面。<a id="more"></a>
+<a name="ee5b80e6"></a></li>
+</ul>
+<h2 id="1-安装smailidea插件"><a href="#1-安装smailidea插件" class="headerlink" title="1.安装smailidea插件"></a>1.安装smailidea插件</h2><p><br />从本地安装，market里面搜索不到。<br /><a href="https://bitbucket.org/JesusFreke/smali/downloads/">https://bitbucket.org/JesusFreke/smali/downloads/</a><br /></p>
+<p><a name="a5708403"></a></p>
+<h2 id="2-使用baksmail-反编译Apk"><a href="#2-使用baksmail-反编译Apk" class="headerlink" title="2. 使用baksmail 反编译Apk"></a>2. 使用baksmail 反编译Apk</h2><p>java -jar baksmail.jar d testapk.apk -o ./srcDir<br /></p>
+<p><a name="b83646b7"></a></p>
+<h2 id="3-导入AS"><a href="#3-导入AS" class="headerlink" title="3. 导入AS"></a>3. 导入AS</h2><p><br />打开AS ,选择新建project 选择 new-&gt;import 选择 上面的srcDir，依次选择jdk，最后邮件标记跟目录为 Mark Director -&gt; Source root<br />然后设置sdk，最后和测试手机的系统版本一致：项目目录–&gt;右键–&gt;Open ModuleSettings：</p>
+<ul>
+<li>我们可以看到工程目录</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506065708-32c2879f-b0f4-42cd-87b4-e2a3c1002695.png#align=left&display=inline&height=782&margin=%5Bobject%20Object%5D&name=SSSSSS5.png&originHeight=782&originWidth=692&size=33984&status=done&style=none&width=692" alt="SSSSSS5.png"><br /></p>
+<p><a name="6e6b23cb"></a></p>
+<h2 id="4-AS-配置debug"><a href="#4-AS-配置debug" class="headerlink" title="4.AS 配置debug"></a>4.AS 配置debug</h2><p><br />接下来配置：Run/Debug Configurations里面的配置文件：打开后我们点击上面的+符合，然后选择Remote，添加一个远程调试如下图：<br />port 后面再说<br /><br><br /><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506097680-bf44b7f3-dbbe-4c03-a547-aabb442e980f.png#align=left&display=inline&height=648&margin=%5Bobject%20Object%5D&name=SSSSSS2.png&originHeight=648&originWidth=1217&size=54043&status=done&style=none&width=1217" alt="SSSSSS2.png"><br /></p>
+<p><a name="efc3ec7f"></a></p>
+<h2 id="6-安装运行APK"><a href="#6-安装运行APK" class="headerlink" title="6.安装运行APK"></a>6.安装运行APK</h2><ul>
+<li>启动方式可以选择 开发者模式里面 等待应用调试</li>
+<li>也可以选择 adb shell am start -D -S -W 包名/启动ACTICITY  例如 adb shell am start -D -S -W com.tencent.mm/com.tencent.mm.ui.LauncherUI</li>
+</ul>
+<p><a name="7.DEBUG"></a></p>
+<h2 id="7-DEBUG"><a href="#7-DEBUG" class="headerlink" title="7.DEBUG"></a>7.DEBUG</h2><p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506121954-80e77b8d-91fb-4e15-aa4e-92f89da2d75e.png#align=left&display=inline&height=239&margin=%5Bobject%20Object%5D&name=SSSSSS1.png&originHeight=239&originWidth=1024&size=32833&status=done&style=none&width=1024" alt="SSSSSS1.png"><br />获取port的2中方式  ，在AS里面设置这个port<br /></p>
+<ul>
+<li>使用 JDWP<ul>
+<li>首先通过 adb ps | grep 查看 这个apk的 pid</li>
+<li>端口转发，把当前电脑的A端口 ，转发对接到手机的B端口。JDWP的端口默认就是PID，所以需要查看PID</li>
+<li>adb forward tcp:8080 jdwp:pid</li>
+</ul>
+</li>
+<li>使用DDMS<ul>
+<li>打开DDMS，遇到端口问题，先adb kill-server  和 adb start-server 重启一下adb</li>
+<li>选择目标APK，点击 会出现 最后一列 会出现 8080/8700 ，就是要填8080,不是填8700</li>
+<li>在AS 中点击 debug，DDMS 选中的进程 会出现绿色的bug图标</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>点击debug</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590506140128-1fa808c0-1df7-46b0-ab59-1b5caa719129.png#align=left&display=inline&height=222&margin=%5Bobject%20Object%5D&name=SSSSSS3.png&originHeight=222&originWidth=457&size=9483&status=done&style=none&width=457" alt="SSSSSS3.png"><br /></p>
+<ul>
+<li>熟悉的界面<img src="https://cdn.nlark.com/yuque/0/2020/jpeg/501385/1590506147462-ef08c3ce-73e4-4f2d-bf38-423c3199fe16.jpeg#align=left&display=inline&height=492&margin=%5Bobject%20Object%5D&name=SSSSSS6.jpg&originHeight=492&originWidth=984&size=36575&status=done&style=none&width=984" alt="SSSSSS6.jpg"><br><a name="6c373749"></a><h2 id="8-其它"><a href="#8-其它" class="headerlink" title="8 其它"></a>8 其它</h2></li>
+</ul>
+<ul>
+<li>确保app 是 debug enable的，若不是，可以 修改APK后重新签名打包</li>
+<li>也可以给手机或模拟器编译一个debug的rom</li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Android/">Android</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/05/10/LeetCode/%E7%9F%A9%E9%98%B5%E4%B8%AD%E7%9A%84%E8%B7%AF%E5%BE%84/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">矩阵中的路径</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/05/07/LeetCode/%E6%9C%80%E9%95%BF%E4%B8%8D%E5%90%AB%E9%87%8D%E5%A4%8D%E5%AD%97%E7%AC%A6%E7%9A%84%E5%AD%90%E5%AD%97%E7%AC%A6%E4%B8%B2/"><span class="level-item">最长不含重复字符的子字符串</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-1-安装smailidea插件" href="#1-安装smailidea插件"><span>1.安装smailidea插件</span></a></li><li><a class="is-flex toc-item" id="toc-item-2-使用baksmail-反编译Apk" href="#2-使用baksmail-反编译Apk"><span>2. 使用baksmail 反编译Apk</span></a></li><li><a class="is-flex toc-item" id="toc-item-3-导入AS" href="#3-导入AS"><span>3. 导入AS</span></a></li><li><a class="is-flex toc-item" id="toc-item-4-AS-配置debug" href="#4-AS-配置debug"><span>4.AS 配置debug</span></a></li><li><a class="is-flex toc-item" id="toc-item-6-安装运行APK" href="#6-安装运行APK"><span>6.安装运行APK</span></a></li><li><a class="is-flex toc-item" id="toc-item-7-DEBUG" href="#7-DEBUG"><span>7.DEBUG</span></a></li><li><a class="is-flex toc-item" id="toc-item-8-其它" href="#8-其它"><span>8 其它</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

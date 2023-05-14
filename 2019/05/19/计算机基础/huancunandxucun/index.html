@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Cache与虚存的异同 - Keeplooking</title><meta description="虚拟存储器虚拟存储器是一个容量非常大的存储器的逻辑模型，不是任何实际的物理存储器。虚拟存储器指的是主存——外存层次。它以透明的方式给用户提供 了一个比实际主存空间大得多的程序地址空间。"><meta property="og:type" content="blog"><meta property="og:title" content="Cache与虚存的异同"><meta property="og:url" content="http://yoursite.com/2019/05/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/huancunandxucun/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="虚拟存储器虚拟存储器是一个容量非常大的存储器的逻辑模型，不是任何实际的物理存储器。虚拟存储器指的是主存——外存层次。它以透明的方式给用户提供 了一个比实际主存空间大得多的程序地址空间。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="http://yoursite.com/img/og_image.png"><meta property="article:published_time" content="2019-05-19T05:43:43.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.970Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="计组"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/05/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/huancunandxucun/"},"headline":"Keeplooking","image":["http://yoursite.com/img/og_image.png"],"datePublished":"2019-05-19T05:43:43.000Z","dateModified":"2023-05-14T07:53:19.970Z","author":{"@type":"Person","name":"Ken Chan"},"description":"虚拟存储器虚拟存储器是一个容量非常大的存储器的逻辑模型，不是任何实际的物理存储器。虚拟存储器指的是主存——外存层次。它以透明的方式给用户提供 了一个比实际主存空间大得多的程序地址空间。"}</script><link rel="canonical" href="http://yoursite.com/2019/05/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/huancunandxucun/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-05-19T05:43:43.000Z" title="2019-05-19T05:43:43.000Z">2019-05-19</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span><span class="level-item">5 分钟 读完 (大约 793 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Cache与虚存的异同</h1><div class="content"><h2 id="虚拟存储器"><a href="#虚拟存储器" class="headerlink" title="虚拟存储器"></a>虚拟存储器</h2><p>虚拟存储器是一个容量非常大的存储器的逻辑模型，不是任何实际的物理存储器。<br>虚拟存储器指的是主存——外存层次。它以透明的方式给用户提供 了一个比实际主存空间大得多的程序地址空间。</p>
+<a id="more"></a>
+<h2 id="实地址与虚地址"><a href="#实地址与虚地址" class="headerlink" title="实地址与虚地址"></a>实地址与虚地址</h2><p>用户编制程序时使用的地址称为虚地址或逻辑地址。其对应的存储空间称为虚存空间或逻辑地址空间；而计算机物理内存的访问地址则称为实地址或物理地址，其对应的存储空间称为物理存储空间或主存空间。程序进行虚地址到实地址转换的过程称为程序再定位。</p>
+<h2 id="虚存的访问过程"><a href="#虚存的访问过程" class="headerlink" title="虚存的访问过程"></a>虚存的访问过程</h2><p>每次访存是，首先判断该虚地址所对弈的部分是否在实存中，如果是，则进行地址转换并用实地址访问主存；否则，按照某种算法将辅存中的部分程序调度进内存，再按同样的方法访问主存。</p>
+<h2 id="cache与虚存的异同"><a href="#cache与虚存的异同" class="headerlink" title="cache与虚存的异同"></a>cache与虚存的异同</h2><p>在三级存储体系中 ，cache-主存和主存-辅存这两个存储层次有许多相同点：<br>（1）出发点相同：二者都是为了提高存储系统的性能价格比而购置的分层存储体系，都力图使存储系统的性能接近高速存储器，而价格和容量接近低速存储器。<br>（2）原理相同：都是利用了程序运行时的局部性原理吧最近常用的信息块从相对慢速而大容量的存储器调入相对高速而小容量的存储器。<br>（3）侧重点不同：cache主要解决主存与CPU的速度差异问题；而就性能价格比的提高而言，虚存主要是解决存储容量问题。<br>（4）数据通路不同：CPU与cache和主存之间均有直接访问通路，cache不命中时可直接访问主存，而虚存所一栏的辅存与CPU之间不存在直接的数据通路，而主存不命中时只能通过调页解决，CPU最终还是要访问主存。<br>（5）透明性不同：cache的管理完全有硬件完成，对系统程序员和应用程序员均透明；而虚存管理由软件（操作系统）和硬件共同完成，由于软件的介入，虚存对实现存储管理的系统程序员不透明，而支队应用程序员透明。<br>（6）未命中时的损失不同：由于主存的存取时间是cache的存取时间的5-10倍，而主存的存取速度通常比辅存的存取速度快上千倍，故主存未命中时系统的性能损失要远岛屿cache未命中时的损失。</p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/%E8%AE%A1%E7%BB%84/">计组</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2019/05/21/%E6%A1%86%E6%9E%B6/k8sinstall/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">K8S安装</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/05/13/Java/Mac%E4%B8%8B%E6%80%8E%E4%B9%88%E7%94%A8CliondebugJVM/"><span class="level-item">Mac下怎么用Clion debug openJdk8?</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-虚拟存储器" href="#虚拟存储器"><span>虚拟存储器</span></a></li><li><a class="is-flex toc-item" id="toc-item-实地址与虚地址" href="#实地址与虚地址"><span>实地址与虚地址</span></a></li><li><a class="is-flex toc-item" id="toc-item-虚存的访问过程" href="#虚存的访问过程"><span>虚存的访问过程</span></a></li><li><a class="is-flex toc-item" id="toc-item-cache与虚存的异同" href="#cache与虚存的异同"><span>cache与虚存的异同</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

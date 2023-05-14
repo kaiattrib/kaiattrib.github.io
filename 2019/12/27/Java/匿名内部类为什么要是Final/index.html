@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>匿名内部类为什么要是final? - Keeplooking</title><meta description="1. java 是引用传参。在里面是修改不了的。"><meta property="og:type" content="blog"><meta property="og:title" content="匿名内部类为什么要是final?"><meta property="og:url" content="http://yoursite.com/2019/12/27/Java/%E5%8C%BF%E5%90%8D%E5%86%85%E9%83%A8%E7%B1%BB%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%98%AFFinal/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="1. java 是引用传参。在里面是修改不了的。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="http://yoursite.com/img/og_image.png"><meta property="article:published_time" content="2019-12-27T04:10:00.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.963Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Java"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/12/27/Java/%E5%8C%BF%E5%90%8D%E5%86%85%E9%83%A8%E7%B1%BB%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%98%AFFinal/"},"headline":"Keeplooking","image":["http://yoursite.com/img/og_image.png"],"datePublished":"2019-12-27T04:10:00.000Z","dateModified":"2023-05-14T07:53:19.963Z","author":{"@type":"Person","name":"Ken Chan"},"description":"1. java 是引用传参。在里面是修改不了的。"}</script><link rel="canonical" href="http://yoursite.com/2019/12/27/Java/%E5%8C%BF%E5%90%8D%E5%86%85%E9%83%A8%E7%B1%BB%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%98%AFFinal/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-12-27T04:10:00.000Z" title="2019-12-27T04:10:00.000Z">2019-12-27</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a><span> / </span><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></span><span class="level-item">4 分钟 读完 (大约 613 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">匿名内部类为什么要是final?</h1><div class="content"><p><a name="YeZa6"></a></p>
+<h4 id="1-java-是引用传参。在里面是修改不了的。"><a href="#1-java-是引用传参。在里面是修改不了的。" class="headerlink" title="1. java 是引用传参。在里面是修改不了的。"></a>1. java 是引用传参。在里面是修改不了的。</h4><a id="more"></a>
+<p><strong>Java8</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FinalTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">changeStr</span><span class="params">(String string)</span></span>&#123;</span><br><span class="line">        string = <span class="string">"BBBB"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testInterface</span><span class="params">(TestInterface testInterface)</span></span>&#123;</span><br><span class="line">        testInterface.say();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String string = <span class="string">"AAAA"</span>;</span><br><span class="line">        <span class="comment">//这个是改不了的</span></span><br><span class="line">        changeStr(string);</span><br><span class="line">        System.out.println(string);</span><br><span class="line"></span><br><span class="line">        testInterface(<span class="keyword">new</span> TestInterface() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">say</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="comment">/*</span></span><br><span class="line"><span class="comment">                 如果可以,这个改得了吗？</span></span><br><span class="line"><span class="comment">                string = "CCCCC";</span></span><br><span class="line"><span class="comment">                */</span></span><br><span class="line">                System.out.println(string);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">TestInterface</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">say</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p><a name="SJymz"></a></p>
+<h4 id="2-如果在匿名内部内里面-可以修改？"><a href="#2-如果在匿名内部内里面-可以修改？" class="headerlink" title="2.如果在匿名内部内里面 可以修改？"></a>2.如果在匿名内部内里面 可以修改？</h4><p>   你觉是改了外部类的引用，还是没改呢？按写代码的思路，你可能认为给改了，因为这不是方法的传参。但实际上呢？会产生歧义。</p>
+<p><a name="fI6oC"></a></p>
+<h4 id="3-匿名内部类引用外部变量-实际上是拷贝的引用。同方法的传参。"><a href="#3-匿名内部类引用外部变量-实际上是拷贝的引用。同方法的传参。" class="headerlink" title="3.匿名内部类引用外部变量 实际上是拷贝的引用。同方法的传参。"></a>3.匿名内部类引用外部变量 实际上是拷贝的引用。同方法的传参。</h4><pre><code>java为了保持数据的一致性。不让在内部类里面修改。因为编译阶段就处理了，匿名内部类因引用的外部变量，在匿名对象构造时候，以构造参数形式传入的。</code></pre><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">// class version 52.0 (52)</span><br><span class="line">// access flags 0x21</span><br><span class="line">public class <span class="built_in">test</span>/FinalTest &#123;</span><br><span class="line"></span><br><span class="line">  // compiled from: FinalTest.java</span><br><span class="line">  // access flags 0x8</span><br><span class="line">  static INNERCLASS <span class="built_in">test</span>/FinalTest<span class="variable">$1</span> null null</span><br><span class="line"></span><br><span class="line">  // access flags 0x1</span><br><span class="line">  public &lt;init&gt;()V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 3 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    INVOKESPECIAL java/lang/Object.&lt;init&gt; ()V</span><br><span class="line">    RETURN</span><br><span class="line">   L1</span><br><span class="line">    LOCALVARIABLE this Ltest/FinalTest; L0 L1 0</span><br><span class="line">    MAXSTACK = 1</span><br><span class="line">    MAXLOCALS = 1</span><br><span class="line"></span><br><span class="line">  // access flags 0x9</span><br><span class="line">  public static changeStr(Ljava/lang/String;)V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 6 L0</span><br><span class="line">    LDC <span class="string">"BBBB"</span></span><br><span class="line">    ASTORE 0</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 7 L1</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE string Ljava/lang/String; L0 L2 0</span><br><span class="line">    MAXSTACK = 1</span><br><span class="line">    MAXLOCALS = 1</span><br><span class="line"></span><br><span class="line">  // access flags 0x9</span><br><span class="line">  public static testInterface(Ltest/TestInterface;)V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 10 L0</span><br><span class="line">    ALOAD 0</span><br><span class="line">    INVOKEINTERFACE <span class="built_in">test</span>/TestInterface.say ()V (itf)</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 11 L1</span><br><span class="line">    RETURN</span><br><span class="line">   L2</span><br><span class="line">    LOCALVARIABLE testInterface Ltest/TestInterface; L0 L2 0</span><br><span class="line">    MAXSTACK = 1</span><br><span class="line">    MAXLOCALS = 1</span><br><span class="line"></span><br><span class="line">  // access flags 0x9</span><br><span class="line">  public static main([Ljava/lang/String;)V</span><br><span class="line">   L0</span><br><span class="line">    LINENUMBER 13 L0</span><br><span class="line">    LDC <span class="string">"AAAA"</span></span><br><span class="line">    ASTORE 1</span><br><span class="line">   L1</span><br><span class="line">    LINENUMBER 15 L1</span><br><span class="line">    ALOAD 1</span><br><span class="line">    INVOKESTATIC <span class="built_in">test</span>/FinalTest.changeStr (Ljava/lang/String;)V</span><br><span class="line">   L2</span><br><span class="line">    LINENUMBER 16 L2</span><br><span class="line">    GETSTATIC java/lang/System.out : Ljava/io/PrintStream;</span><br><span class="line">    ALOAD 1</span><br><span class="line">    INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/String;)V</span><br><span class="line">   L3</span><br><span class="line">    LINENUMBER 18 L3</span><br><span class="line">    NEW <span class="built_in">test</span>/FinalTest<span class="variable">$1</span></span><br><span class="line">    DUP</span><br><span class="line">    ALOAD 1</span><br><span class="line">    </span><br><span class="line">    //看这里，看这里  &lt;init&gt; 方法多了一个String</span><br><span class="line">    // 匿名内部类因引用的外部变量，在匿名对象构造时候，以构造参数形式传入的</span><br><span class="line">    INVOKESPECIAL <span class="built_in">test</span>/FinalTest<span class="variable">$1</span>.&lt;init&gt; (Ljava/lang/String;)V</span><br><span class="line">    INVOKESTATIC <span class="built_in">test</span>/FinalTest.testInterface (Ltest/TestInterface;)V</span><br><span class="line">   L4</span><br><span class="line">    LINENUMBER 28 L4</span><br><span class="line">    RETURN</span><br><span class="line">   L5</span><br><span class="line">    LOCALVARIABLE args [Ljava/lang/String; L0 L5 0</span><br><span class="line">    LOCALVARIABLE string Ljava/lang/String; L1 L5 1</span><br><span class="line">    MAXSTACK = 3</span><br><span class="line">    MAXLOCALS = 2</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><a name="GGYC3"></a></p>
+<h4 id="4-为什么？"><a href="#4-为什么？" class="headerlink" title="4.为什么？"></a>4.为什么？</h4><p>  因为匿名内部类 引用外部类的变量 是隐式的类似方法的传参。关键是隐式的处理，若果可以改，必定是改不了外部引用的，防止产生歧义。为什么Java8 不需要加final？只是语法糖，内部类里面照样不能修改引用，修改导致编译不过的。<br />**</p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Java/">Java</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/04/18/Java/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%BC%95%E8%B5%B7%E7%9A%84Bug/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">记一次类加载引起的Bug</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/12/14/Java/Java%E6%9F%A5%E7%9C%8B%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%A4%A7%E5%B0%8F/"><span class="level-item">Java查看对象的大小</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><!--!--></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

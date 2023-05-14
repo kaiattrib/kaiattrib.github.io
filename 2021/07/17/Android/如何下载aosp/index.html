@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>如何下载AOSP (Android Open Source Project) - Keeplooking</title><meta description="准备条件你可能临时起意想要尝试，最好先确认一下自己的软硬件环境  内存16GB起步,编译会出现 fatal error: runtime: out of memory 磁盘200GB+  如果你是要看源码，用不着下载  http:&amp;#x2F;&amp;#x2F;androidxref.com&amp;#x2F;  http:&amp;#x2F;&amp;#x2F;www.aospxref.com&amp;#x2F; https:&amp;#x2F;&amp;#x2F;cs.android.com&amp;#x2F;"><meta property="og:type" content="blog"><meta property="og:title" content="如何下载AOSP (Android Open Source Project)"><meta property="og:url" content="http://yoursite.com/2021/07/17/Android/%E5%A6%82%E4%BD%95%E4%B8%8B%E8%BD%BDaosp/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="准备条件你可能临时起意想要尝试，最好先确认一下自己的软硬件环境  内存16GB起步,编译会出现 fatal error: runtime: out of memory 磁盘200GB+  如果你是要看源码，用不着下载  http:&amp;#x2F;&amp;#x2F;androidxref.com&amp;#x2F;  http:&amp;#x2F;&amp;#x2F;www.aospxref.com&amp;#x2F; https:&amp;#x2F;&amp;#x2F;cs.android.com&amp;#x2F;"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="http://yoursite.com/img/og_image.png"><meta property="article:published_time" content="2021-07-17T06:15:46.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.958Z"><meta property="article:author" content="Ken Chan"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2021/07/17/Android/%E5%A6%82%E4%BD%95%E4%B8%8B%E8%BD%BDaosp/"},"headline":"Keeplooking","image":["http://yoursite.com/img/og_image.png"],"datePublished":"2021-07-17T06:15:46.000Z","dateModified":"2023-05-14T07:53:19.958Z","author":{"@type":"Person","name":"Ken Chan"},"description":"准备条件你可能临时起意想要尝试，最好先确认一下自己的软硬件环境  内存16GB起步,编译会出现 fatal error: runtime: out of memory 磁盘200GB+  如果你是要看源码，用不着下载  http:&#x2F;&#x2F;androidxref.com&#x2F;  http:&#x2F;&#x2F;www.aospxref.com&#x2F; https:&#x2F;&#x2F;cs.android.com&#x2F;"}</script><link rel="canonical" href="http://yoursite.com/2021/07/17/Android/%E5%A6%82%E4%BD%95%E4%B8%8B%E8%BD%BDaosp/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2021-07-17T06:15:46.000Z" title="2021-07-17T06:15:46.000Z">2021-07-17</time><span class="level-item"><a class="link-muted" href="/categories/Android/">Android</a></span><span class="level-item">11 分钟 读完 (大约 1671 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">如何下载AOSP (Android Open Source Project)</h1><div class="content"><h2 id="准备条件"><a href="#准备条件" class="headerlink" title="准备条件"></a>准备条件</h2><p>你可能临时起意想要尝试，最好先确认一下自己的软硬件环境</p>
+<ul>
+<li>内存16GB起步,编译会出现 <code>fatal error: runtime: out of memory</code></li>
+<li>磁盘200GB+</li>
+</ul>
+<p>如果你是要看源码，用不着下载</p>
+<ul>
+<li><a href="http://androidxref.com/">http://androidxref.com/</a> </li>
+<li><a href="http://www.aospxref.com/">http://www.aospxref.com/</a></li>
+<li><a href="https://cs.android.com/">https://cs.android.com/</a></li>
+</ul>
+<a id="more"></a>
+<p>本文采用的是清华源 <a href="https://mirrors.tuna.tsinghua.edu.cn/help/AOSP/，">https://mirrors.tuna.tsinghua.edu.cn/help/AOSP/，</a><br>你可以可以按原文里面的步骤</p>
+<h2 id="下载repo工具"><a href="#下载repo工具" class="headerlink" title="下载repo工具"></a>下载repo工具</h2><p>repo就是一个git脚本的集合，其实还是git公交，很多git命令可以直接套用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/bin</span><br><span class="line">PATH=~/bin:<span class="variable">$PATH</span></span><br><span class="line">curl https://storage.googleapis.com/git-repo-downloads/repo &gt; ~/bin/repo</span><br><span class="line">chmod a+x ~/bin/repo</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="repo-init-初始化"><a href="#repo-init-初始化" class="headerlink" title="repo init 初始化"></a>repo init 初始化</h2><p>   我没有通过初始包的方式下载，包含了自己不需要的，而且全部工程有点大。我们做一些精简。拉取指定的分支，如果需要特定的分支 去<a href="https://source.android.com/source/build-numbers.html#source-code-tags-and-builds">https://source.android.com/source/build-numbers.html#source-code-tags-and-builds</a> 选择Tag</p>
+<pre><code>repo init --depth=1 -u https://aosp.tuna.tsinghua.edu.cn/platform/manifest -b android-11.0.0_r39</code></pre><ul>
+<li>–depth=1  表示只下载最近版本的代码，只保留最近的commit版本。使用–depth 可以节省本地磁盘空间，加速下载，对于开发够用了</li>
+</ul>
+<hr>
+<h2 id="repo-sync-下载"><a href="#repo-sync-下载" class="headerlink" title="repo sync  下载"></a>repo sync  下载</h2><pre><code>repo sync -c -f --no-tags --no-clone-bundle -j`nproc` </code></pre><ul>
+<li>-c 或者–current-branch表示只拉取当前分支代码.</li>
+<li>–no-tags 不拉取tags</li>
+<li>–no-clone-bundle 不使用clone.bundle</li>
+<li>-f 如果sync失败，继续同步</li>
+<li>–force-sync 如果文件目录有差异，强制覆盖掉</li>
+<li>-j 参数指定同时运行多少个job, 看具体的源是否支持足够的数量</li>
+</ul>
+<p>执行玩会出现success的log，大概80GB左右，出错可重新执行。</p>
+<p>如果出现如下的错误，上面的命令追加重新跑一次</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">error: Unable to fully sync the tree.</span><br><span class="line">error: Downloading network changes failed.</span><br><span class="line">Try re-running with <span class="string">"-j1 --fail-fast"</span> to <span class="built_in">exit</span> at the first error</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="常用的repo命令"><a href="#常用的repo命令" class="headerlink" title="常用的repo命令"></a>常用的repo命令</h2><ul>
+<li><p>创建分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repo start --all 自定义分支名</span><br></pre></td></tr></table></figure></li>
+<li><p>删除分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repo abandon 已创建的本地分支名</span><br></pre></td></tr></table></figure></li>
+<li><p>切换分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repo init -b xxx --depth&#x3D;1</span><br><span class="line">repo sync -c -f</span><br></pre></td></tr></table></figure></li>
+<li><p>repo回滚</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">repo sync -d</span><br><span class="line">repo forall -c <span class="string">'git reset --hard'</span>    <span class="comment"># Remove all working directory (and staged) changes.</span></span><br><span class="line">repo forall -c <span class="string">'git clean -f -d'</span>     <span class="comment"># Clean untracked files</span></span><br></pre></td></tr></table></figure></li>
+<li><p>查看当前项目分支</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">repo branch</span><br><span class="line">repo status</span><br></pre></td></tr></table></figure>
+<p>可以看到每一个git 工程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">project art/                                    branch android_11_study_ck</span><br><span class="line">project bionic/                                 branch android_11_study_ck</span><br><span class="line">project bootable/recovery/                      branch android_11_study_ck</span><br><span class="line">project build/blueprint/                        branch android_11_study_ck</span><br><span class="line">project build/make/                             branch android_11_study_ck</span><br><span class="line">project build/soong/                            branch android_11_study_ck</span><br><span class="line">project compatibility/cdd/                      branch android_11_study_ck</span><br><span class="line">project cts/                                    branch android_11_study_ck</span><br><span class="line">project dalvik/                                 branch android_11_study_ck</span><br><span class="line">project developers/build/                       branch android_11_study_ck</span><br><span class="line">project developers/demos/                       branch android_11_study_ck</span><br><span class="line">project developers/samples/android/             branch android_11_study_ck</span><br><span class="line">project development/                            branch android_11_study_ck</span><br><span class="line">project device/amlogic/yukawa/                  branch android_11_study_ck</span><br><span class="line">project device/amlogic/yukawa-kernel/           branch android_11_study_ck</span><br><span class="line">project device/common/                          branch android_11_study_ck</span><br><span class="line">project device/generic/arm64/                   branch android_11_study_ck</span><br><span class="line">project device/generic/armv7<span class="_">-a</span>-neon/            branch android_11_study_ck</span><br><span class="line">project device/generic/art/                     branch android_11_study_ck</span><br><span class="line">project device/generic/car/                     branch android_11_study_ck</span><br><span class="line">project device/generic/common/                  branch android_11_study_ck</span><br><span class="line">project device/generic/goldfish/                branch android_11_study_ck</span><br><span class="line">project device/generic/goldfish-opengl/         branch android_11_study_ck</span><br><span class="line">project device/generic/mini-emulator-arm64/     branch android_11_study_ck</span><br><span class="line">project device/generic/mini-emulator-armv7<span class="_">-a</span>-neon/ branch android_11_study_ck</span><br><span class="line">project device/generic/mini-emulator-x86/       branch android_11_study_ck</span><br><span class="line">project device/generic/mini-emulator-x86_64/    branch android_11_study_ck</span><br><span class="line">project device/generic/opengl-transport/        branch android_11_study_ck</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<hr>
+<h2 id="AOSP-目录简介"><a href="#AOSP-目录简介" class="headerlink" title="AOSP 目录简介"></a>AOSP 目录简介</h2><p>目录结构<br><a href="https://elinux.org/Master-android">https://elinux.org/Master-android</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">./</span><br><span class="line">├── art</span><br><span class="line">├── bionic</span><br><span class="line">├── bootable</span><br><span class="line">├── build</span><br><span class="line">├── compatibility</span><br><span class="line">├── cts</span><br><span class="line">├── dalvik</span><br><span class="line">├── developers</span><br><span class="line">├── development</span><br><span class="line">├── device</span><br><span class="line">├── external</span><br><span class="line">├── frameworks</span><br><span class="line">├── hardware</span><br><span class="line">├── kernel</span><br><span class="line">├── libcore</span><br><span class="line">├── libnativehelper</span><br><span class="line">├── out</span><br><span class="line">├── packages</span><br><span class="line">├── pdk</span><br><span class="line">├── platform_testing</span><br><span class="line">├── prebuilts</span><br><span class="line">├── sdk</span><br><span class="line">├── system</span><br><span class="line">├── <span class="built_in">test</span></span><br><span class="line">├── toolchain</span><br><span class="line">└── tools</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>abi（Application Binary Interface） <a href="https://developer.android.com/ndk/guides/abis">https://developer.android.com/ndk/guides/abis</a></p>
+</li>
+<li><p>art（Android runtime） <a href="https://source.android.com/devices/tech/dalvik/">https://source.android.com/devices/tech/dalvik/</a></p>
+</li>
+<li><p>bionic 一些基础库</p>
+<ul>
+<li>libm（library math）</li>
+<li>libc（library c）：在 glibc 的基础上做了裁剪与修改的，为了规避GNU GPL等商业行为的约束</li>
+<li>libstdc++（library standard C++）：并非完整版，只做了简单支持<br>linker：装载链接相关库</li>
+</ul>
+</li>
+<li><p>bootable<br>bootable 下仅包含 recovery 此文件夹，其实就是启动 Android recovery 模式相关的代码</p>
+</li>
+<li><p>build<br>Android Build 系统，用来定制各种编译规则。主要由 makefile 组成。<br>比如在编译时要执行的 source build/envsetup.sh 就位于 build 下</p>
+</li>
+<li><p>cts（Compatibility Test Suite)<br>一个自动化测试工具 CTS</p>
+</li>
+<li><p>dalvik<br>dalvik 虚拟机 , <a href="https://source.android.com/devices/tech/dalvik/">https://source.android.com/devices/tech/dalvik/</a></p>
+</li>
+<li><p>developers<br>一些可运行的 Android 示例项目，可以单独拉出来运行</p>
+</li>
+<li><p>device<br>包含不同品牌手机独有的设备信息  </p>
+</li>
+<li><p>external<br>一些开源的第三方组件，这里仅列了一下大家比较熟悉的如glide、junit、okhttp、sqlite 等</p>
+</li>
+<li><p>frameworks<br>Android 中大家熟悉的 Frameworks，应用程序框架层</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">av</span><br><span class="line">base</span><br><span class="line">compile</span><br><span class="line">data-binding</span><br><span class="line">ex</span><br><span class="line">mff</span><br><span class="line">minikin</span><br><span class="line">ml</span><br><span class="line">multidex</span><br><span class="line">native</span><br><span class="line">opt</span><br><span class="line">rs</span><br><span class="line">support</span><br><span class="line">volley</span><br><span class="line">webview</span><br><span class="line">wilhelm</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Android support 包 com.android.support:support-v4、v7 等都位于 frameworks/support 文件夹下</li>
+<li>webview 就位于 frameworks/webview 文件夹下</li>
+<li>各种 Service，比如ActivityManagerService、SystemService、WindowManagerService、InputManagerService等就位于 frameworks/base 文件夹下</li>
+<li>keystore、opengl 等也位于 frameworks/base 文件夹下</li>
+</ul>
+</li>
+<li><p>hardware<br>包含了 android HAL（硬件抽象层）相关代码。硬件抽象层介于 Linux内核驱动程序与 Android 系统之间。对 Linux 驱动进行了封装，使操作系统级别可以忽略底层实现的细节。</p>
+</li>
+<li><p>libcore<br> 一些核心库</p>
+</li>
+<li><p>libnativehelper<br>JNI 相关的一些类</p>
+</li>
+<li><p>ndk<br>原生开发工具包</p>
+</li>
+<li><p>out<br>编译完后输出的所有相关文件都位于此文件夹下，包括生成的各种 img 就位于 out/target/product/hammerhead 下</p>
+</li>
+<li><p>packages<br>各种内置的 apk、ContentProvider、输入法、壁纸等</p>
+<ul>
+<li>蓝牙、浏览器、相机、邮件、音乐、NFC 等都位于 packages/apps 下面</li>
+<li>MediaProvider、DownloadProvider、MmsProvider等都位于 packages/providers 下</li>
+<li>壁纸相关位于 packages/wallpapers 下</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>pdk（Platform Development Kit）<br>平台开发套件，仅包含了一些供硬件抽象层开发使用的必要组件，供一些 OEM 厂商用来适配及测试最新的Android 系统，加快第三方厂商的更新速度。<br>加快OEM厂商的update速度</p>
+</li>
+<li><p>prebuilts<br>一些预构建成二进制的库 prebuilts<br><a href="https://developer.android.com/ndk/guides/prebuilts">https://developer.android.com/ndk/guides/prebuilts</a></p>
+</li>
+<li><p>system<br>Android 的部分系统源码及一些工具，主要是在各种 java 启动程序起来前的部分。工具比如 adb、fastboot、keystore 等，其他如 mkbootimg、init 进程等</p>
+</li>
+</ul>
+<ul>
+<li>vendor<br>包含不同供应商的私有的二进制库</li>
+</ul>
+<hr>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://blog.csdn.net/counsellor/article/details/86591081">https://blog.csdn.net/counsellor/article/details/86591081</a></li>
+<li><a href="https://ressrc.com/2018/11/19/android-source-directory-structure-analysis/">https://ressrc.com/2018/11/19/android-source-directory-structure-analysis/</a></li>
+</ul>
+</div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2021/08/21/Kotlin/kotlin-equal-java/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">区分Kotlin中的 == 和 ===</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2021/07/10/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/android_project_graph/"><span class="level-item">项目如何生成模块关系图？</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-准备条件" href="#准备条件"><span>准备条件</span></a></li><li><a class="is-flex toc-item" id="toc-item-下载repo工具" href="#下载repo工具"><span>下载repo工具</span></a></li><li><a class="is-flex toc-item" id="toc-item-repo-init-初始化" href="#repo-init-初始化"><span>repo init 初始化</span></a></li><li><a class="is-flex toc-item" id="toc-item-repo-sync-下载" href="#repo-sync-下载"><span>repo sync  下载</span></a></li><li><a class="is-flex toc-item" id="toc-item-常用的repo命令" href="#常用的repo命令"><span>常用的repo命令</span></a></li><li><a class="is-flex toc-item" id="toc-item-AOSP-目录简介" href="#AOSP-目录简介"><span>AOSP 目录简介</span></a></li><li><a class="is-flex toc-item" id="toc-item-参考" href="#参考"><span>参考</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

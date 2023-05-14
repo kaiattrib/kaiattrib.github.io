@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>App Debug 主线程，出现ANR后被系统Kill - Keeplooking</title><meta description="痛点笔者手上有个Reamle GT，日常开发工作中，是不是会debug，断点在主线程里面，基本被kill，没办法调试代码，自动重启给开发带来很大困扰，实在受不了，着手解决。"><meta property="og:type" content="blog"><meta property="og:title" content="App Debug 主线程，出现ANR后被系统Kill"><meta property="og:url" content="http://yoursite.com/2022/04/30/Android/ui-timeout-kill-app-md/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="痛点笔者手上有个Reamle GT，日常开发工作中，是不是会debug，断点在主线程里面，基本被kill，没办法调试代码，自动重启给开发带来很大困扰，实在受不了，着手解决。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711284095-4d166955-74f3-4516-bc0c-07ecc8121011.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=305&amp;id=ub4cc2a25&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=773&amp;originWidth=875&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=68383&amp;status=done&amp;style=none&amp;taskId=uf43348cb-4fb0-4de8-85fb-3cd1451b7fd&amp;title=&amp;width=345.3333435058594"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711147962-16ce62e5-935f-4d9e-810c-c7f33a962c9f.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=181&amp;id=u1153588c&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=308&amp;originWidth=893&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=66147&amp;status=done&amp;style=none&amp;taskId=u26a757de-dfcc-4132-b4b9-9498d0cbf42&amp;title=&amp;width=524.3333740234375"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711515268-c53e05bf-74d0-42bd-9132-683009724ed0.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=464&amp;id=ueacae895&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=696&amp;originWidth=1463&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=70543&amp;status=done&amp;style=none&amp;taskId=u86001e71-32a4-435e-b97b-8b485bb6393&amp;title=&amp;width=975.3333333333334"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711630064-3bc28628-757b-407a-947e-7360d749f9a8.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=385&amp;id=u6196b803&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=577&amp;originWidth=1517&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=39971&amp;status=done&amp;style=none&amp;taskId=ucb8582b6-a988-4064-8bfa-54d81e3b5ac&amp;title=&amp;width=1011.3333333333334"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650712063520-d24b4dba-1084-4782-8d77-e3b1fc233d66.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=463&amp;id=u452168bb&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=695&amp;originWidth=1469&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=55811&amp;status=done&amp;style=none&amp;taskId=ubb6f4548-842c-4caf-be9c-253ba68dcd1&amp;title=&amp;width=979.3333333333334"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650712284096-81fe3357-f291-47fd-8e5d-57912e6308c9.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=769&amp;id=ubd507793&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=1153&amp;originWidth=2090&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=185438&amp;status=done&amp;style=none&amp;taskId=u0ed2eacd-6696-445b-87f7-a25322c3b1a&amp;title=&amp;width=1393.3333333333333"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650710338690-4021363e-1e59-4511-bba0-b0842faad0d8.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=422&amp;id=ub0bad63c&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=633&amp;originWidth=891&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=57082&amp;status=done&amp;style=none&amp;taskId=u78074acb-415f-4419-8253-afbeb51bfc0&amp;title=&amp;width=594"><meta property="article:published_time" content="2022-04-30T09:00:26.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.958Z"><meta property="article:author" content="Ken Chan"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711284095-4d166955-74f3-4516-bc0c-07ecc8121011.png#clientId=u1f5cad76-e78e-4&amp;crop=0&amp;crop=0&amp;crop=1&amp;crop=1&amp;from=paste&amp;height=305&amp;id=ub4cc2a25&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=773&amp;originWidth=875&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=68383&amp;status=done&amp;style=none&amp;taskId=uf43348cb-4fb0-4de8-85fb-3cd1451b7fd&amp;title=&amp;width=345.3333435058594"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2022/04/30/Android/ui-timeout-kill-app-md/"},"headline":"Keeplooking","image":[],"datePublished":"2022-04-30T09:00:26.000Z","dateModified":"2023-05-14T07:53:19.958Z","author":{"@type":"Person","name":"Ken Chan"},"description":"痛点笔者手上有个Reamle GT，日常开发工作中，是不是会debug，断点在主线程里面，基本被kill，没办法调试代码，自动重启给开发带来很大困扰，实在受不了，着手解决。"}</script><link rel="canonical" href="http://yoursite.com/2022/04/30/Android/ui-timeout-kill-app-md/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2022-04-30T09:00:26.000Z" title="2022-04-30T09:00:26.000Z">2022-04-30</time><span class="level-item"><a class="link-muted" href="/categories/Android/">Android</a></span><span class="level-item">9 分钟 读完 (大约 1416 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">App Debug 主线程，出现ANR后被系统Kill</h1><div class="content"><h2 id="痛点"><a href="#痛点" class="headerlink" title="痛点"></a>痛点</h2><p>笔者手上有个Reamle GT，日常开发工作中，是不是会debug，断点在主线程里面，基本被kill，没办法调试代码，自动重启给开发带来很大困扰，实在受不了，着手解决。</p>
+<a id="more"></a>   
+
+<p>   <br />      环境：realme gt，Android11，realme ui 2.0 <br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711284095-4d166955-74f3-4516-bc0c-07ecc8121011.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=305&id=ub4cc2a25&margin=%5Bobject%20Object%5D&name=image.png&originHeight=773&originWidth=875&originalType=binary&ratio=1&rotation=0&showTitle=false&size=68383&status=done&style=none&taskId=uf43348cb-4fb0-4de8-85fb-3cd1451b7fd&title=&width=345.3333435058594" alt="image.png"><br><a name="yqFxu"></a></p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><p>先全局找log，发现信息，框架里面一定会留下下什么。复现一次，采集logcat，尝试搜索包名，kill app 多关注 ActivityManager。<br><a name="WQL9q"></a></p>
+<h3 id="找实现逻辑"><a href="#找实现逻辑" class="headerlink" title="找实现逻辑"></a>找实现逻辑</h3><p>仔细筛选一下， 发现了这个日志，就是罪魁祸首了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">04-23 14:07:36.545  1397  1695 I ActivityManager: Killing 13134:com.hi.dhl.startup.simple/u0a297 (adj 0): user request after error:Input dispatching timed out (3f0c272 com.simple/com.simple.MainActivity (server) is not responding. Waited 5001ms for MotionEvent)</span><br></pre></td></tr></table></figure>
+<p>接着过滤一下ActivityManager log，可以看到有出现ANR之后，处理完ANR之后，app就被kill了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">7485: 04-23 14:07:36.527  1397 13246 E ActivityManager:   0% 12803/kworker/4:2-mm_percpu_wq: 0% user + 0% kernel</span><br><span class="line">7486: 04-23 14:07:36.527  1397 13246 E ActivityManager:  +0% 13207/logcat: 0% user + 0% kernel</span><br><span class="line">7487: 04-23 14:07:36.527  1397 13246 E ActivityManager: 3.7% TOTAL: 1% user + 1.8% kernel + 0% iowait + 0.6% irq + 0.1% softirq</span><br><span class="line">7488: 04-23 14:07:36.527  1397 13246 E ActivityManager: CPU usage from 61ms to 379ms later (2022-04-23 14:07:36.082 to 2022-04-23 14:07:36.400):</span><br><span class="line">7489: 04-23 14:07:36.527  1397 13246 E ActivityManager:   37% 1397/system_server: 10% user + 27% kernel / faults: 921 minor</span><br><span class="line">7490: 04-23 14:07:36.527  1397 13246 E ActivityManager:     31% 13246/AnrConsumer: 6.8% user + 24% kernel</span><br><span class="line">7491: 04-23 14:07:36.527  1397 13246 E ActivityManager:     3.4% 2468/SensorService: 0% user + 3.4% kernel</span><br><span class="line">7492: 04-23 14:07:36.527  1397 13246 E ActivityManager:     3.4% 2790/OplusAppBwCore: 0% user + 3.4% kernel</span><br><span class="line">7493: 04-23 14:07:36.527  1397 13246 E ActivityManager:   3.2% 356/kworker/u24:6-ufs_clk_gating_0: 0% user + 3.2% kernel</span><br><span class="line">7494: 04-23 14:07:36.527  1397 13246 E ActivityManager:   3.3% 1008/usbtemp_kthread: 0% user + 3.3% kernel</span><br><span class="line">7495: 04-23 14:07:36.527  1397 13246 E ActivityManager:   4.2% 11938/kworker/u24:2-memlat_wq: 0% user + 4.2% kernel</span><br><span class="line">7496: 04-23 14:07:36.527  1397 13246 E ActivityManager: 7.2% TOTAL: 2% user + 4.8% kernel + 0.4% irq</span><br><span class="line">7497  04-23 14:07:36.527  1397 13246 V java.lang.ASSERT: copyAnr filePath = /data/anr/anr_2022-04-23-14-07-36-428</span><br><span class="line"></span><br><span class="line">7499  04-23 14:07:36.528  1397 13246 D OplusManager: send on stamp success</span><br><span class="line">7500: 04-23 14:07:36.528  1397 13246 D ActivityManager: Completed ANR of com.simple  in 508ms, latency 1ms</span><br><span class="line">7501: 04-23 14:07:36.529  1397  1695 W ActivityManager:  Dismiss app ANR dialog : com.simple </span><br><span class="line">7502: 04-23 14:07:36.529  1397  1695 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1161 com.android.server.am.OplusExtraActivityManagerService.setKeyLockModeNormal:51 com.android.server.am.ActivityManagerService.killAppAtUsersRequest:10688 com.android.server.am.AppErrors.handleShowAnrUi:966 com.android.server.am.ActivityManagerService$UiHandler.handleMessage:1884 </span><br><span class="line">7503  04-23 14:07:36.529  1397 13247 I DropBoxManagerService: add tag=data_app_anr isTagEnabled=true flags=0x2</span><br><span class="line"></span><br><span class="line">7527  04-23 14:07:36.544  1397  1695 D ScreenMode:  switch from  2 to 3</span><br><span class="line">7528: 04-23 14:07:36.545  1397  1695 I ActivityManager: Killing 13134:com.simple /u0a297 (adj 0): user request after error:Input dispatching timed out (3f0c272 com.simple /com.simple .MainActivity (server) is not responding. Waited 5001ms for MotionEvent)</span><br><span class="line">7529  04-23 14:07:36.545  1397  1700 D OplusFeatureHDREnhanceBrightness: onConfigChangedthreadId=22, threadName=android.display, configId=1</span><br></pre></td></tr></table></figure>
+<p>基本可以确定，是出现ANR之后，被kill了，但是其他手机上，会出现个ANR对话框，可以确定的是，开发者选项里面的已经开启了。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711147962-16ce62e5-935f-4d9e-810c-c7f33a962c9f.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=181&id=u1153588c&margin=%5Bobject%20Object%5D&name=image.png&originHeight=308&originWidth=893&originalType=binary&ratio=1&rotation=0&showTitle=false&size=66147&status=done&style=none&taskId=u26a757de-dfcc-4132-b4b9-9498d0cbf42&title=&width=524.3333740234375" alt="image.png"><br />那么厂商是怎么做的呢？去拉一下框架代码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb pull /system/framework</span><br></pre></td></tr></table></figure>
+<p>首先来看一下 framework.jar ,去看下Activity Manager的代码<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711515268-c53e05bf-74d0-42bd-9132-683009724ed0.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=464&id=ueacae895&margin=%5Bobject%20Object%5D&name=image.png&originHeight=696&originWidth=1463&originalType=binary&ratio=1&rotation=0&showTitle=false&size=70543&status=done&style=none&taskId=u86001e71-32a4-435e-b97b-8b485bb6393&title=&width=975.3333333333334" alt="image.png"><br />去搜索一下 日志里面的字段，很遗憾没有找到什么。<br />除了 framework.jar  还有 services.jar，一些系统服务在里面。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650711630064-3bc28628-757b-407a-947e-7360d749f9a8.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=385&id=u6196b803&margin=%5Bobject%20Object%5D&name=image.png&originHeight=577&originWidth=1517&originalType=binary&ratio=1&rotation=0&showTitle=false&size=39971&status=done&style=none&taskId=ucb8582b6-a988-4064-8bfa-54d81e3b5ac&title=&width=1011.3333333333334" alt="image.png"><br />在services.jar 里面，发现一些端倪，去追 ，果然是在ActivityManagerService里面</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">killAppAtUserRequestLocked</span><span class="params">(ProcessRecord app)</span> </span>&#123;</span><br><span class="line">    String killAnnotation;</span><br><span class="line">    ProcessRecord.ErrorDialogController controller = app.getDialogController();</span><br><span class="line">    <span class="keyword">int</span> reasonCode = <span class="number">6</span>;</span><br><span class="line">    <span class="keyword">int</span> subReason = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (controller.hasDebugWaitingDialog()) &#123;</span><br><span class="line">        reasonCode = <span class="number">13</span>;</span><br><span class="line">        subReason = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    controller.clearAllErrorDialogs();</span><br><span class="line">    <span class="keyword">if</span> (app == <span class="keyword">null</span> || app.mAnrAnnotation == <span class="keyword">null</span>) &#123;</span><br><span class="line">        killAnnotation = <span class="string">"user request after error"</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        String killAnnotation2 = <span class="string">"user request after error:"</span> + app.mAnrAnnotation;</span><br><span class="line">        app.mAnrAnnotation = <span class="keyword">null</span>;</span><br><span class="line">        killAnnotation = killAnnotation2;</span><br><span class="line">    &#125;</span><br><span class="line">    killAppImmediateLocked(app, reasonCode, subReason, <span class="string">"user-terminated"</span>, killAnnotation);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用来着</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">killAppAtUsersRequest</span><span class="params">(ProcessRecord app)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            boostPriorityForLockedSection();</span><br><span class="line">            <span class="keyword">if</span> (app.pid &gt; <span class="number">0</span> &amp;&amp; app.pid != MY_PID) &#123;</span><br><span class="line">                OplusExtraActivityManagerService.setKeyLockModeNormal(<span class="keyword">this</span>.mContext, app.processName, <span class="keyword">this</span>.mSystemReady);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">this</span>.mAppErrors.killAppAtUserRequestLocked(app);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable th) &#123;</span><br><span class="line">            resetPriorityAfterLockedSection();</span><br><span class="line">            <span class="keyword">throw</span> th;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    resetPriorityAfterLockedSection();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>继续追调用，发现有4个地方在引用，我们挨个确认一下，<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650712063520-d24b4dba-1084-4782-8d77-e3b1fc233d66.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=463&id=u452168bb&margin=%5Bobject%20Object%5D&name=image.png&originHeight=695&originWidth=1469&originalType=binary&ratio=1&rotation=0&showTitle=false&size=55811&status=done&style=none&taskId=ubb6f4548-842c-4caf-be9c-253ba68dcd1&title=&width=979.3333333333334" alt="image.png"><br />在在 handleShowAnrUi 里面，可以发现这段逻辑<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650712284096-81fe3357-f291-47fd-8e5d-57912e6308c9.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=769&id=ubd507793&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1153&originWidth=2090&originalType=binary&ratio=1&rotation=0&showTitle=false&size=185438&status=done&style=none&taskId=u0ed2eacd-6696-445b-87f7-a25322c3b1a&title=&width=1393.3333333333333" alt="image.png"><br />向上去追这段逻辑，发现有个控制逻辑_  java.lang.String r5 = “persist.sys.assert.panic”， _<br />在shell里面getpro试一下，得到默认false。我们现在要跳过kill的逻辑，改掉这个值不就可以啦。<br><a name="lKqLW"></a></p>
+<h3 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h3><p>_    <em>不幸的是，persist.sys.是系统属性，普通用户没有权限修改，也就是说需要root权限。<br />root权限，需要解锁。解锁部分可以去xda看看，也是申请解锁，启动twrp，刷写magisk那一套。<br />root完之后，shell里面，su setpro _persist.sys.assert.panic = true。</em><br><a name="l7GtB"></a></p>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><p>现在断点在主线程里面，就出现弹窗，不会直接kill debug的app了。想断多久就多久了。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/501385/1650710338690-4021363e-1e59-4511-bba0-b0842faad0d8.png#clientId=u1f5cad76-e78e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=422&id=ub0bad63c&margin=%5Bobject%20Object%5D&name=image.png&originHeight=633&originWidth=891&originalType=binary&ratio=1&rotation=0&showTitle=false&size=57082&status=done&style=none&taskId=u78074acb-415f-4419-8253-afbeb51bfc0&title=&width=594" alt="image.png"><br><a name="G51kA"></a></p>
+<h2 id="建议"><a href="#建议" class="headerlink" title="建议"></a>建议</h2><p>国内可以考虑小米和一加，解锁和刷机起来比较简单，可以刷一些简单的ROM，调试和可玩性都比较高。</p>
+</div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2022/08/14/Android/bug-json-opt-long/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">JsonObject.optLong 导致的Bug</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/"><span class="level-item">iOS如何安装旧版本app, app降级</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-痛点" href="#痛点"><span>痛点</span></a></li><li><a class="is-flex toc-item" id="toc-item-思路" href="#思路"><span>思路</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-找实现逻辑" href="#找实现逻辑"><span>找实现逻辑</span></a></li><li><a class="is-flex toc-item" id="toc-item-修改" href="#修改"><span>修改</span></a></li><li><a class="is-flex toc-item" id="toc-item-验证" href="#验证"><span>验证</span></a></li></ul></li><li><a class="is-flex toc-item" id="toc-item-建议" href="#建议"><span>建议</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

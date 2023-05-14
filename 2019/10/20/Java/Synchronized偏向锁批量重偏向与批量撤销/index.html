@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Synchronized偏向锁批量重偏向与批量撤销 - Keeplooking</title><meta description="1.批量重偏向 intx BiasedLockingBulkRebiasThreshold   &amp;#x3D; 20   默认偏向锁批量重偏向阈值  可以通过JVM参数 -XX:BiasedLockingBulkRebiasThreshold手动设置阈值 起因：当一个线程A对某个类生成大量的对象的对象，这些对象偏向了A，后面突然有来了个线程B去抢线程A生成的对象，就会导致偏向锁的升级为轻量级锁，如果总是在"><meta property="og:type" content="blog"><meta property="og:title" content="Synchronized偏向锁批量重偏向与批量撤销"><meta property="og:url" content="http://yoursite.com/2019/10/20/Java/Synchronized%E5%81%8F%E5%90%91%E9%94%81%E6%89%B9%E9%87%8F%E9%87%8D%E5%81%8F%E5%90%91%E4%B8%8E%E6%89%B9%E9%87%8F%E6%92%A4%E9%94%80/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="1.批量重偏向 intx BiasedLockingBulkRebiasThreshold   &amp;#x3D; 20   默认偏向锁批量重偏向阈值  可以通过JVM参数 -XX:BiasedLockingBulkRebiasThreshold手动设置阈值 起因：当一个线程A对某个类生成大量的对象的对象，这些对象偏向了A，后面突然有来了个线程B去抢线程A生成的对象，就会导致偏向锁的升级为轻量级锁，如果总是在"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589907050687-5a562a8f-6a63-4332-a2df-27bc44ff4609.png#align=left&amp;display=inline&amp;height=1112&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-20_00-50-29.png&amp;originHeight=1112&amp;originWidth=2458&amp;size=182790&amp;status=done&amp;style=none&amp;width=2458"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589907252091-e2baf118-2cc5-421f-9532-8db3ccbc7071.png#align=left&amp;display=inline&amp;height=1112&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-20_00-54-05.png&amp;originHeight=1112&amp;originWidth=2634&amp;size=181300&amp;status=done&amp;style=none&amp;width=2634"><meta property="article:published_time" content="2019-10-20T11:08:19.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.961Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Java"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589907050687-5a562a8f-6a63-4332-a2df-27bc44ff4609.png#align=left&amp;display=inline&amp;height=1112&amp;margin=%5Bobject%20Object%5D&amp;name=Xnip2020-05-20_00-50-29.png&amp;originHeight=1112&amp;originWidth=2458&amp;size=182790&amp;status=done&amp;style=none&amp;width=2458"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/10/20/Java/Synchronized%E5%81%8F%E5%90%91%E9%94%81%E6%89%B9%E9%87%8F%E9%87%8D%E5%81%8F%E5%90%91%E4%B8%8E%E6%89%B9%E9%87%8F%E6%92%A4%E9%94%80/"},"headline":"Keeplooking","image":[],"datePublished":"2019-10-20T11:08:19.000Z","dateModified":"2023-05-14T07:53:19.961Z","author":{"@type":"Person","name":"Ken Chan"},"description":"1.批量重偏向 intx BiasedLockingBulkRebiasThreshold   &#x3D; 20   默认偏向锁批量重偏向阈值  可以通过JVM参数 -XX:BiasedLockingBulkRebiasThreshold手动设置阈值 起因：当一个线程A对某个类生成大量的对象的对象，这些对象偏向了A，后面突然有来了个线程B去抢线程A生成的对象，就会导致偏向锁的升级为轻量级锁，如果总是在"}</script><link rel="canonical" href="http://yoursite.com/2019/10/20/Java/Synchronized%E5%81%8F%E5%90%91%E9%94%81%E6%89%B9%E9%87%8F%E9%87%8D%E5%81%8F%E5%90%91%E4%B8%8E%E6%89%B9%E9%87%8F%E6%92%A4%E9%94%80/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-10-20T11:08:19.000Z" title="2019-10-20T11:08:19.000Z">2019-10-20</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a><span> / </span><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></span><span class="level-item">7 分钟 读完 (大约 975 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Synchronized偏向锁批量重偏向与批量撤销</h1><div class="content"><p><a name="CKIPw"></a></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><p><a name="JRqy4"></a></p>
+<h2 id="1-批量重偏向"><a href="#1-批量重偏向" class="headerlink" title="1.批量重偏向"></a>1.批量重偏向</h2><ul>
+<li><p>intx BiasedLockingBulkRebiasThreshold   = 20   默认偏向锁批量重偏向阈值</p>
+</li>
+<li><p>可以通过JVM参数 -XX:BiasedLockingBulkRebiasThreshold手动设置阈值<br><a name="o4xv1"></a></p>
+<h3 id="起因："><a href="#起因：" class="headerlink" title="起因："></a>起因：</h3><p>当一个线程A对某个类生成大量的对象的对象，这些对象偏向了A，后面突然有来了个线程B去抢线程A生成的对象，就会导致偏向锁的升级为轻量级锁，如果总是在不断的升级锁，到了一定的阈值，JVM 就会对类的所有对象进行批量的重新偏向与B。</p>
+<a id="more"></a>
+<p><a name="uMT2G"></a></p>
+<h3 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BiasedLock</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">//偏向延时</span></span><br><span class="line">        Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">        <span class="keyword">final</span> ArrayList&lt;Dog&gt; dogArrayList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        Runnable runnable1 = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">while</span> (dogArrayList.size() &lt; <span class="number">60</span>) &#123;</span><br><span class="line">                    Dog dog = <span class="keyword">new</span> Dog();</span><br><span class="line">                    <span class="keyword">synchronized</span> (dog)&#123;</span><br><span class="line">                        dogArrayList.add(dog);</span><br><span class="line">                        HeaderPrint.parseHeaderInfo(dog);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//保持线程不要退出</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">100000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Runnable runnable2 = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">50</span>; i++) &#123;</span><br><span class="line">                    Dog dog = dogArrayList.get(i);</span><br><span class="line">                    <span class="keyword">synchronized</span> (dog)&#123;</span><br><span class="line">                        System.out.print((i+<span class="number">1</span>)+<span class="string">":"</span>);</span><br><span class="line">                        dogArrayList.add(dog);</span><br><span class="line">                        HeaderPrint.parseHeaderInfo(dog);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//保持线程不要退出</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">100000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">new</span> Thread(runnable1).start();</span><br><span class="line">        <span class="comment">//保证线程1生成完毕</span></span><br><span class="line">        Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">        <span class="keyword">new</span> Thread(runnable2).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们可以看到，线程2启动的时候，是从偏向锁升级到了  轻量级锁</p>
+</li>
+<li><p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589907050687-5a562a8f-6a63-4332-a2df-27bc44ff4609.png#align=left&display=inline&height=1112&margin=%5Bobject%20Object%5D&name=Xnip2020-05-20_00-50-29.png&originHeight=1112&originWidth=2458&size=182790&status=done&style=none&width=2458" alt=""></p>
+</li>
+<li><p>一直升级到 阈值20的时候，触发JVM优化机制，JVM认为偏向的不对，怎么总是线程2来强=抢，总的升级锁，比较麻烦，所以JVM直接让剩下dog对象，直接重新偏向到线程2</p>
+</li>
+<li><p>线程0 的偏向值  thread:54:000000000000000001111111101001001000101100000011000100(HEX:1fe922c0c4)</p>
+</li>
+<li><p>在 第 20个是的时候，就已经重新偏向了</p>
+</li>
+<li><p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589907252091-e2baf118-2cc5-421f-9532-8db3ccbc7071.png#align=left&display=inline&height=1112&margin=%5Bobject%20Object%5D&name=Xnip2020-05-20_00-54-05.png&originHeight=1112&originWidth=2634&size=181300&status=done&style=none&width=2634" alt="Xnip2020-05-20_00-54-05.png"></p>
+</li>
+<li><p>后面的也都是偏向锁</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">50:</span><br><span class="line">--------START-----------Thread-2</span><br><span class="line">--------偏向锁--------</span><br><span class="line">thread:54:000000000000000001111111101001001000101100011000001110(HEX:1fe922c60e)</span><br><span class="line">epoch:2:01</span><br><span class="line">unused:1:0</span><br><span class="line">age:4:0000</span><br><span class="line">biased_lock:1:1</span><br><span class="line">--------END-----------Thread-2</span><br></pre></td></tr></table></figure>
+<p><a name="d2DUu"></a></p>
+<h2 id="-1"><a href="#-1" class="headerlink" title=""></a></h2><p><a name="jP4K7"></a></p>
+<h2 id="2-批量撤销"><a href="#2-批量撤销" class="headerlink" title="2.批量撤销"></a>2.批量撤销</h2></li>
+<li><p>intx BiasedLockingBulkRevokeThreshold  = 40   默认偏向锁批量撤销阈值</p>
+</li>
+<li><p>可以通过JVM参数 -XX:BiasedLockingBulkRevokeThreshold手动设置阈值<br><a name="1ILdp"></a></p>
+<h3 id="起因：-1"><a href="#起因：-1" class="headerlink" title="起因："></a>起因：</h3><p>在多个线程竞争剧烈的情况下，使用偏向锁将会降低效率，于是乎产生了批量撤销机制。<br><a name="KvIGU"></a></p>
+<h3 id="测试代码："><a href="#测试代码：" class="headerlink" title="测试代码："></a>测试代码：</h3></li>
+</ul>
+<ul>
+<li><p>批量重偏向和批量撤销是针对类的优化。</p>
+</li>
+<li><p>偏向锁只会重偏向一次，后面就是升级锁</p>
+</li>
+<li><p>当某个类已经触发批量撤销机制后，该类的对象不会再使用偏向锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">2</span>);</span><br><span class="line">        <span class="comment">//偏向延时</span></span><br><span class="line">        Thread.sleep(<span class="number">5000</span>);</span><br><span class="line">        <span class="keyword">final</span> ArrayList&lt;Dog&gt; dogArrayList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        Runnable runnable1 = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">while</span> (dogArrayList.size() &lt; <span class="number">80</span>) &#123;</span><br><span class="line">                    Dog dog = <span class="keyword">new</span> Dog();</span><br><span class="line">                    <span class="keyword">synchronized</span> (dog) &#123;</span><br><span class="line">                        dogArrayList.add(dog);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//保持线程不要退出</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">50000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Runnable runnable2 = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt;<span class="number">39</span>; i++) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (i == <span class="number">38</span>) &#123;</span><br><span class="line">                        System.out.println((i + <span class="number">1</span>) + <span class="string">":"</span>);</span><br><span class="line"></span><br><span class="line">                        <span class="comment">//这里主要是给主线程留出时间，让主线程打印出一个new Dog</span></span><br><span class="line">                        countDownLatch.countDown();</span><br><span class="line">                        <span class="keyword">try</span> &#123;</span><br><span class="line">                            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                            e.printStackTrace();</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                    &#125;</span><br><span class="line">                    Dog dog = dogArrayList.get(i);</span><br><span class="line">                    <span class="keyword">synchronized</span> (dog) &#123;</span><br><span class="line">                        dogArrayList.add(dog);</span><br><span class="line">                        <span class="keyword">try</span> &#123;</span><br><span class="line">                            Thread.sleep(<span class="number">20</span>);</span><br><span class="line">                        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                            e.printStackTrace();</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//保持线程不要退出</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">50000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="keyword">new</span> Thread(runnable1).start();</span><br><span class="line">        <span class="comment">//保证线程1生成完毕</span></span><br><span class="line">        Thread.sleep(<span class="number">3000</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//重新偏向线程2</span></span><br><span class="line">        <span class="keyword">new</span> Thread(runnable2).start();</span><br><span class="line">        Thread.sleep(<span class="number">3000</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//线程3导致偏向锁升级</span></span><br><span class="line">        <span class="keyword">new</span> Thread(runnable2).start();</span><br><span class="line">  </span><br><span class="line">        <span class="comment">//线程3导致锁升级到39的时候，new出来的对象，默认是可偏向的状态</span></span><br><span class="line">        countDownLatch.await();</span><br><span class="line">        HeaderPrint.parseHeaderInfo(<span class="keyword">new</span> Dog());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//保证之后</span></span><br><span class="line">        Thread.sleep(<span class="number">3000</span>);</span><br><span class="line">        <span class="comment">//第39之后的新对象，已经没有偏向了，偏向被撤销了</span></span><br><span class="line">        HeaderPrint.parseHeaderInfo(<span class="keyword">new</span> Dog());</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输出</p>
+</li>
+<li><p>第39的时候，默认输出的是，可偏向状态</p>
+</li>
+<li><p>第39之后，new 的对象，已经被取消默认可偏向的状态了，成无锁了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">39:</span><br><span class="line">--------START-----------main</span><br><span class="line">--------偏向锁--------</span><br><span class="line">thread:54:000000000000000000000000000000000000000000000000000000(HEX:0)</span><br><span class="line">epoch:2:01</span><br><span class="line">unused:1:0</span><br><span class="line">age:4:0000</span><br><span class="line">biased_lock:1:1</span><br><span class="line">--------END-----------main</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">--------START-----------main</span><br><span class="line">--------无锁-----------</span><br><span class="line">unused:25:0000000000000000000000000</span><br><span class="line">identity_hashcode:31: 0000000000000000000000000000000 (Hex:0)</span><br><span class="line">unused:1:0</span><br><span class="line">age:4:0000</span><br><span class="line">biased_lock:1:0</span><br><span class="line">lock:2:01</span><br><span class="line">--------END-----------main</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Java/">Java</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2019/10/21/Java/staticfinalString%E4%B8%8E%E7%B1%BB%E7%9A%84%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96%E9%97%AE%E9%A2%98/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">static final String 与类的加载与初始化问题</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/10/18/Java/Ubuntu%E7%BC%96%E8%AF%91glibc%E5%BA%93%E6%9D%A5%E9%AA%8C%E8%AF%81JavaSynchronized%E9%94%81%E4%BC%98%E5%8C%96/"><span class="level-item">Ubuntu编译glibc库来验证Synchronized锁优化效果</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-" href="#"><span> </span></a></li><li><a class="is-flex toc-item" id="toc-item-1-批量重偏向" href="#1-批量重偏向"><span>1.批量重偏向</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-起因：" href="#起因："><span>起因：</span></a></li><li><a class="is-flex toc-item" id="toc-item-测试代码" href="#测试代码"><span>测试代码</span></a></li></ul></li><li><a class="is-flex toc-item" id="toc-item--1" href="#-1"><span> </span></a></li><li><a class="is-flex toc-item" id="toc-item-2-批量撤销" href="#2-批量撤销"><span>2.批量撤销</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-起因：-1" href="#起因：-1"><span>起因：</span></a></li><li><a class="is-flex toc-item" id="toc-item-测试代码：" href="#测试代码："><span>测试代码：</span></a></li></ul></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

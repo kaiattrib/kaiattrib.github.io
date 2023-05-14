@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>View的几个高度/宽度 - Keeplooking</title><meta description="自定义view的过程onMeasure()–&amp;gt;onLayout()–&amp;gt;onDraw()  onMeasure() 计算当前各个子view的高宽度 onLayout() 确定各个子view在父容器的位置"><meta property="og:type" content="blog"><meta property="og:title" content="View的几个高度/宽度"><meta property="og:url" content="http://yoursite.com/2020/04/26/Android/viewsomeheight/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="自定义view的过程onMeasure()–&amp;gt;onLayout()–&amp;gt;onDraw()  onMeasure() 计算当前各个子view的高宽度 onLayout() 确定各个子view在父容器的位置"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/501385/1587908360383-7d123d17-c101-4492-a4aa-6c80732fd346.jpeg#align=left&amp;display=inline&amp;height=546&amp;margin=%5Bobject%20Object%5D&amp;originHeight=546&amp;originWidth=745&amp;size=0&amp;status=done&amp;style=none&amp;width=745"><meta property="article:published_time" content="2020-04-26T14:49:10.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.958Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Android"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/jpeg/501385/1587908360383-7d123d17-c101-4492-a4aa-6c80732fd346.jpeg#align=left&amp;display=inline&amp;height=546&amp;margin=%5Bobject%20Object%5D&amp;originHeight=546&amp;originWidth=745&amp;size=0&amp;status=done&amp;style=none&amp;width=745"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2020/04/26/Android/viewsomeheight/"},"headline":"Keeplooking","image":[],"datePublished":"2020-04-26T14:49:10.000Z","dateModified":"2023-05-14T07:53:19.958Z","author":{"@type":"Person","name":"Ken Chan"},"description":"自定义view的过程onMeasure()–&gt;onLayout()–&gt;onDraw()  onMeasure() 计算当前各个子view的高宽度 onLayout() 确定各个子view在父容器的位置"}</script><link rel="canonical" href="http://yoursite.com/2020/04/26/Android/viewsomeheight/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-04-26T14:49:10.000Z" title="2020-04-26T14:49:10.000Z">2020-04-26</time><span class="level-item"><a class="link-muted" href="/categories/Android/">Android</a></span><span class="level-item">9 分钟 读完 (大约 1326 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">View的几个高度/宽度</h1><div class="content"><h2 id="自定义view的过程"><a href="#自定义view的过程" class="headerlink" title="自定义view的过程"></a>自定义view的过程</h2><p>onMeasure()–&gt;onLayout()–&gt;onDraw()</p>
+<ul>
+<li><h4 id="onMeasure-计算当前各个子view的高宽度"><a href="#onMeasure-计算当前各个子view的高宽度" class="headerlink" title="onMeasure() 计算当前各个子view的高宽度"></a>onMeasure() 计算当前各个子view的高宽度</h4></li>
+<li><h4 id="onLayout-确定各个子view在父容器的位置"><a href="#onLayout-确定各个子view在父容器的位置" class="headerlink" title="onLayout() 确定各个子view在父容器的位置"></a>onLayout() 确定各个子view在父容器的位置</h4><a id="more"></a>
+<p>需要4个参数确定子view的位置。都是相对父容器的<br>left 左边距离<br>top 上边距离<br>right 右边距离<br>bottom 下边距离<br>如果我想让某个子view占据父布局的上一半。就是 child.layout(0,0,0,<code>1/2*父容器的高度</code>)</p>
+</li>
+</ul>
+<ul>
+<li><h4 id="onDraw-开始绘制-真正开始具体绘制"><a href="#onDraw-开始绘制-真正开始具体绘制" class="headerlink" title="onDraw() 开始绘制  真正开始具体绘制"></a>onDraw() 开始绘制  真正开始具体绘制</h4></li>
+</ul>
+<hr>
+<h2 id="1-view-getLayoutParams-height-width"><a href="#1-view-getLayoutParams-height-width" class="headerlink" title="1 view.getLayoutParams().height/width"></a>1 view.getLayoutParams().height/width</h2><p>获取当前view在父容器中的布局宽高度, 父容器根据LayoutParams()可以确定这个view的怎么布局。这里的height 和 width 可以是具体的数，也可以是如下的参数。每个不一样的ViewGroup拥有不一样的LayoutParams。LayoutParams()不仅仅是确定高度和宽度，还可以确定Margin，gravity。</p>
+<p>获取来源：1.动态布局，可以任何时候手动setLayoutParams，setLayoutParams方法里面会触发requestLayout();requestLayout触发父容器重新依次计算子view在父布局的位置。<br>2.android.view.ViewGroup 的绘制过程中的方法会自动调用  view.setLayoutParams(params);<code>注意</code>可能获取为null，还没没有添加到布局中，自然不存在 LayoutParams。在方法 <code>public void addView(**)</code>会创建params = generateDefaultLayoutParams();每一种不同的布局类型，不同的generateDefaultLayoutParams初始化策略。</p>
+<p>获取时机：<code>addView之后</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">LayoutParams</span> </span>&#123;</span><br><span class="line">       <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * Special value for the height or width requested by a View.</span></span><br><span class="line"><span class="comment">        * FILL_PARENT means that the view wants to be as big as its parent,</span></span><br><span class="line"><span class="comment">        * minus the parent's padding, if any. This value is deprecated</span></span><br><span class="line"><span class="comment">        * starting in API Level 8 and replaced by &#123;<span class="doctag">@link</span> #MATCH_PARENT&#125;.</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">       <span class="meta">@SuppressWarnings</span>(&#123;<span class="string">"UnusedDeclaration"</span>&#125;)</span><br><span class="line">       <span class="meta">@Deprecated</span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FILL_PARENT = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * Special value for the height or width requested by a View.</span></span><br><span class="line"><span class="comment">        * MATCH_PARENT means that the view wants to be as big as its parent,</span></span><br><span class="line"><span class="comment">        * minus the parent's padding, if any. Introduced in API Level 8.</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> MATCH_PARENT = -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * Special value for the height or width requested by a View.</span></span><br><span class="line"><span class="comment">        * WRAP_CONTENT means that the view wants to be just large enough to fit</span></span><br><span class="line"><span class="comment">        * its own internal content, taking its own padding into account.</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> WRAP_CONTENT = -<span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * Information about how wide the view wants to be. Can be one of the</span></span><br><span class="line"><span class="comment">        * constants FILL_PARENT (replaced by MATCH_PARENT</span></span><br><span class="line"><span class="comment">        * in API Level 8) or WRAP_CONTENT, or an exact size.</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">       <span class="meta">@ViewDebug</span>.ExportedProperty(category = <span class="string">"layout"</span>, mapping = &#123;</span><br><span class="line">           <span class="meta">@ViewDebug</span>.IntToString(from = MATCH_PARENT, to = <span class="string">"MATCH_PARENT"</span>),</span><br><span class="line">           <span class="meta">@ViewDebug</span>.IntToString(from = WRAP_CONTENT, to = <span class="string">"WRAP_CONTENT"</span>)</span><br><span class="line">       &#125;)</span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">int</span> width;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/**</span></span><br><span class="line"><span class="comment">        * Information about how tall the view wants to be. Can be one of the</span></span><br><span class="line"><span class="comment">        * constants FILL_PARENT (replaced by MATCH_PARENT</span></span><br><span class="line"><span class="comment">        * in API Level 8) or WRAP_CONTENT, or an exact size.</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">       <span class="meta">@ViewDebug</span>.ExportedProperty(category = <span class="string">"layout"</span>, mapping = &#123;</span><br><span class="line">           <span class="meta">@ViewDebug</span>.IntToString(from = MATCH_PARENT, to = <span class="string">"MATCH_PARENT"</span>),</span><br><span class="line">           <span class="meta">@ViewDebug</span>.IntToString(from = WRAP_CONTENT, to = <span class="string">"WRAP_CONTENT"</span>)</span><br><span class="line">       &#125;)</span><br><span class="line">       <span class="keyword">public</span> <span class="keyword">int</span> height;</span><br><span class="line"></span><br><span class="line">       ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="2-view-getHeight-getWidth"><a href="#2-view-getHeight-getWidth" class="headerlink" title="2 view().getHeight()/getWidth()"></a>2 view().getHeight()/getWidth()</h2><p>获取当前view的高度和宽度，需在onLayout之后获取，就是用laout中的   宽度就是=左边-去右边    高度 = 上边-下边</p>
+<p>获取时机：<code>必须在onLayout 之后</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getHeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mBottom - mTop;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getWidth</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mRight - mLeft;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-view-getMeasuredHeight-getMeasuredWidth"><a href="#3-view-getMeasuredHeight-getMeasuredWidth" class="headerlink" title="3 view().getMeasuredHeight()/getMeasuredWidth()"></a>3 view().getMeasuredHeight()/getMeasuredWidth()</h2><p>获取view自己的原始高度,</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">//The raw measured width of this view.</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getMeasuredWidth</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">//取mod  MEASURED_SIZE_MASK = 0x00ffffff;</span></span><br><span class="line">        <span class="keyword">return</span> mMeasuredWidth &amp; MEASURED_SIZE_MASK;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//The raw measured height of this view.</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getMeasuredHeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mMeasuredHeight &amp; MEASURED_SIZE_MASK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>值的来源 onMeasure中调用的setMeasuredDimensionRaw</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setMeasuredDimensionRaw</span><span class="params">(<span class="keyword">int</span> measuredWidth, <span class="keyword">int</span> measuredHeight)</span> </span>&#123;</span><br><span class="line">       mMeasuredWidth = measuredWidth;</span><br><span class="line">       mMeasuredHeight = measuredHeight;</span><br><span class="line"></span><br><span class="line">       mPrivateFlags |= PFLAG_MEASURED_DIMENSION_SET;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>setMeasuredDimensionRaw来源于view#measure(int widthMeasureSpec, int heightMeasureSpec)<br>widthMeasureSpec 和 heightMeasureSpec  和 view 和 原始layoutpram 又相关。</p>
+<p>获取时机：<code>必须在view的onMeasure之后</code></p>
+<p>关于MeasuredHeight() 请参考  <a href="/2020/04/26/Android/widthMeasureSpec-heightMeasureSpec/" title="MeasureSpec">MeasureSpec</a></p>
+<hr>
+<h2 id="4-出发点的BUG-为什么view重叠的时候，有时可以点击？而有时不可以点击？"><a href="#4-出发点的BUG-为什么view重叠的时候，有时可以点击？而有时不可以点击？" class="headerlink" title="4. 出发点的BUG 为什么view重叠的时候，有时可以点击？而有时不可以点击？"></a>4. 出发点的BUG 为什么view重叠的时候，有时可以点击？而有时不可以点击？</h2><p>如图所示，存在以为视图布局如下,当以你以为的布局进行点击的时候，发现点击小view时而可以，时而不行？why？本质是点击事件的分发有关，点击事件由ViewGroup发往子View的时候，是从后面向前遍历的。也就是说，当2个view重叠的情况，谁在后面，谁响应本次事件。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/jpeg/501385/1587908360383-7d123d17-c101-4492-a4aa-6c80732fd346.jpeg#align=left&display=inline&height=546&margin=%5Bobject%20Object%5D&originHeight=546&originWidth=745&size=0&status=done&style=none&width=745" alt=""></p>
+<p>可见android.view.ViewGroup#dispatchTouchEvent</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">dispatchTouchEvent</span><span class="params">(MotionEvent ev)</span></span>&#123;</span><br><span class="line">   ---</span><br><span class="line">   <span class="keyword">if</span> (newTouchTarget == <span class="keyword">null</span> &amp;&amp; childrenCount != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">float</span> x = ev.getX(actionIndex);</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">float</span> y = ev.getY(actionIndex);</span><br><span class="line">    <span class="comment">// Find a child that can receive the event.</span></span><br><span class="line">    <span class="comment">// Scan children from front to back.</span></span><br><span class="line">    <span class="comment">// 从后向前遍历 一个可以接受点击事件的 view</span></span><br><span class="line">    <span class="keyword">final</span> ArrayList&lt;View&gt; preorderedList = buildTouchDispatchChildList();</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">boolean</span> customOrder = preorderedList == <span class="keyword">null</span></span><br><span class="line">            &amp;&amp; isChildrenDrawingOrderEnabled();</span><br><span class="line">    <span class="keyword">final</span> View[] children = mChildren;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = childrenCount - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> childIndex = getAndVerifyPreorderedIndex(</span><br><span class="line">                childrenCount, i, customOrder);</span><br><span class="line">        <span class="keyword">final</span> View child = getAndVerifyPreorderedView(</span><br><span class="line">                preorderedList, children, childIndex);</span><br><span class="line">        <span class="keyword">if</span> (childWithAccessibilityFocus != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (childWithAccessibilityFocus != child) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            childWithAccessibilityFocus = <span class="keyword">null</span>;</span><br><span class="line">            i = childrenCount - <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//判断子 view 能不能收到 点击事件，和点击事件是不是在 子view的范围中</span></span><br><span class="line">        <span class="keyword">if</span> (!canViewReceivePointerEvents(child)</span><br><span class="line">                || !isTransformedTouchPointInView(x, y, child, <span class="keyword">null</span>)) &#123;</span><br><span class="line">            ev.setTargetAccessibilityFocus(<span class="keyword">false</span>);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (dispatchTransformedTouchEvent(ev, <span class="keyword">false</span>, child, idBitsToAssign)) </span><br><span class="line">   ---</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>最后才在 dispatchTransformedTouchEvent 调用 child.dispatchTouchEvent(event)</p>
+<p>在onMeasure 调用  super.onMeasure 在super.onMeasure中计算子view的高度的时候会用到子view原来的LayoutParams，然后再计算 set子view的LayoutParams的，最后在onLayout的时候 通过 getMeasuredWidth()获取高度。问题在于getMeasuredWidth()获取的高度是在super.onMeasure的时候就已经确定了的，并不是在在onMeasure计算的高度，实际在于刚才set的LayoutParams。后面进入的时候 LayoutParams已经被更新了，再次super.onMeasure 更新的MeasuredWidth()就是和新的LayoutParams相关了,展示就会正确。</p>
+<p>问题就是第一次进来的时候就会获取错误的高度，onlayout并不是我们手动计算的高度。</p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Android/">Android</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/04/26/Android/widthMeasureSpec-heightMeasureSpec/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">理解MeasureSpec  widthMeasureSpec/heightMeasureSpec</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/04/24/LeetCode/chou-shu-lcof/"><span class="level-item">丑数</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-自定义view的过程" href="#自定义view的过程"><span>自定义view的过程</span></a></li><li><a class="is-flex toc-item" id="toc-item-1-view-getLayoutParams-height-width" href="#1-view-getLayoutParams-height-width"><span>1 view.getLayoutParams().height&amp;#x2F;width</span></a></li><li><a class="is-flex toc-item" id="toc-item-2-view-getHeight-getWidth" href="#2-view-getHeight-getWidth"><span>2 view().getHeight()&amp;#x2F;getWidth()</span></a></li><li><a class="is-flex toc-item" id="toc-item-3-view-getMeasuredHeight-getMeasuredWidth" href="#3-view-getMeasuredHeight-getMeasuredWidth"><span>3 view().getMeasuredHeight()&amp;#x2F;getMeasuredWidth()</span></a></li><li><a class="is-flex toc-item" id="toc-item-4-出发点的BUG-为什么view重叠的时候，有时可以点击？而有时不可以点击？" href="#4-出发点的BUG-为什么view重叠的时候，有时可以点击？而有时不可以点击？"><span>4. 出发点的BUG 为什么view重叠的时候，有时可以点击？而有时不可以点击？</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

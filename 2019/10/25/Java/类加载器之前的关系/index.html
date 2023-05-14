@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>类加载器之间的关系 - Keeplooking</title><meta description="本次我们主要讨论子类和父类的类加载器之前的关系, 以及包含之前的类加载器关系。我们自定义一个classloder，设置父加载器为null，这样保证都是自己来加载，指向的路径和AppClassloader一致，这样方便2个都好直接加载"><meta property="og:type" content="blog"><meta property="og:title" content="类加载器之间的关系"><meta property="og:url" content="http://yoursite.com/2019/10/25/Java/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E4%B9%8B%E5%89%8D%E7%9A%84%E5%85%B3%E7%B3%BB/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="本次我们主要讨论子类和父类的类加载器之前的关系, 以及包含之前的类加载器关系。我们自定义一个classloder，设置父加载器为null，这样保证都是自己来加载，指向的路径和AppClassloader一致，这样方便2个都好直接加载"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590421173800-9338d2cf-9795-44df-85ee-e7081046b434.png#align=left&amp;display=inline&amp;height=470&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=940&amp;originWidth=1876&amp;size=258350&amp;status=done&amp;style=none&amp;width=938"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590422558045-f03c036a-4e4f-42f2-a206-300c428e7b2a.png#align=left&amp;display=inline&amp;height=472&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=944&amp;originWidth=1104&amp;size=125316&amp;status=done&amp;style=none&amp;width=552"><meta property="article:published_time" content="2019-10-25T14:36:34.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.963Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Java"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1590421173800-9338d2cf-9795-44df-85ee-e7081046b434.png#align=left&amp;display=inline&amp;height=470&amp;margin=%5Bobject%20Object%5D&amp;name=image.png&amp;originHeight=940&amp;originWidth=1876&amp;size=258350&amp;status=done&amp;style=none&amp;width=938"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2019/10/25/Java/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E4%B9%8B%E5%89%8D%E7%9A%84%E5%85%B3%E7%B3%BB/"},"headline":"Keeplooking","image":[],"datePublished":"2019-10-25T14:36:34.000Z","dateModified":"2023-05-14T07:53:19.963Z","author":{"@type":"Person","name":"Ken Chan"},"description":"本次我们主要讨论子类和父类的类加载器之前的关系, 以及包含之前的类加载器关系。我们自定义一个classloder，设置父加载器为null，这样保证都是自己来加载，指向的路径和AppClassloader一致，这样方便2个都好直接加载"}</script><link rel="canonical" href="http://yoursite.com/2019/10/25/Java/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%E4%B9%8B%E5%89%8D%E7%9A%84%E5%85%B3%E7%B3%BB/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2019-10-25T14:36:34.000Z" title="2019-10-25T14:36:34.000Z">2019-10-25</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a><span> / </span><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></span><span class="level-item">11 分钟 读完 (大约 1666 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">类加载器之间的关系</h1><div class="content"><p>本次我们主要讨论子类和父类的类加载器之前的关系, 以及包含之前的类加载器关系。<br />我们自定义一个classloder，设置父加载器为null，这样保证都是自己来加载，指向的路径和AppClassloader一致，这样方便2个都好直接加载</p>
+<a id="more"></a>
+<p><a name="cK7cz"></a></p>
+<h2 id="继承关系"><a href="#继承关系" class="headerlink" title="继承关系"></a>继承关系</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyAnimal</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyAnimal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"MyAnimal by load "</span> + MyAnimal<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>())</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyDog</span> <span class="keyword">extends</span> <span class="title">MyAnimal</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyDog</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"MyDog by Load "</span> + MyDog<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>())</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        MyCustomClassLoader loader = <span class="keyword">new</span> MyCustomClassLoader();<span class="comment">//自定加载类</span></span><br><span class="line">        loader.setPath(<span class="string">"/Users/kenchan/GitHub/jvm_study/target/classes/"</span>);</span><br><span class="line">         </span><br><span class="line">        Class&lt;?&gt; myDog = loader.loadClass(<span class="string">"com.test.classload.MyDog"</span>);<span class="comment">//加载</span></span><br><span class="line">        Constructor&lt;?&gt; constructor = myDog.getConstructor();<span class="comment">//实列化</span></span><br><span class="line">        constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        Object o = constructor.newInstance();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><p>输出</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">findClass,自定义类加载器加载了指定的类</span><br><span class="line">findClass,自定义类加载器加载了指定的类</span><br><span class="line">MyAnimal by load com.test.classload.MyCustomClassLoader@4b67cf4d</span><br><span class="line">MyDog by Load com.test.classload.MyCustomClassLoader@4b67cf4d</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可以看到MyDog引发MyAnimal的类加载，同时也用了MyDog的加载器</p>
+</li>
+<li><p>从调用栈来看，在MyDog类被加载的时候，native defineClass1 阶段，native code直接回调到Dog的加载器 MyCustomClassLoader来尝试加载MyDog的父类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">findClass:<span class="number">34</span>, MyCustomClassLoader (com.test.classload) [<span class="number">2</span>]<span class="comment">//MyCustomClassLoader加载父类MyAnimal</span></span><br><span class="line">loadClass:<span class="number">424</span>, ClassLoader (java.lang)</span><br><span class="line">loadClass:<span class="number">357</span>, ClassLoader (java.lang)</span><br><span class="line"><span class="comment">//native define 引发加载父类MyAnimal的加载，从这里放回的就是MyCustomClassLoader了</span></span><br><span class="line">defineClass1:-<span class="number">1</span>, ClassLoader (java.lang)</span><br><span class="line">defineClass:<span class="number">763</span>, ClassLoader (java.lang)</span><br><span class="line">defineClass:<span class="number">642</span>, ClassLoader (java.lang)</span><br><span class="line">findClass:<span class="number">36</span>, MyCustomClassLoader (com.test.classload) [<span class="number">1</span>]<span class="comment">//首先加载Dog</span></span><br><span class="line">loadClass:<span class="number">424</span>, ClassLoader (java.lang)</span><br><span class="line">loadClass:<span class="number">357</span>, ClassLoader (java.lang)</span><br><span class="line">main:<span class="number">15</span>,</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<p><a name="vrQuR"></a></p>
+<h3 id="疑问1，假如MyAnimal提前被AppClassloder加载了呢？"><a href="#疑问1，假如MyAnimal提前被AppClassloder加载了呢？" class="headerlink" title="疑问1，假如MyAnimal提前被AppClassloder加载了呢？"></a>疑问1，假如MyAnimal提前被AppClassloder加载了呢？</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">       MyCustomClassLoader loader = <span class="keyword">new</span> MyCustomClassLoader();</span><br><span class="line">       loader.setPath(<span class="string">"/Users/kenchan/GitHub/jvm_study/target/classes/"</span>);</span><br><span class="line"></span><br><span class="line">       Class&lt;?&gt; myDog = loader.loadClass(<span class="string">"com.test.classload.MyDog"</span>);</span><br><span class="line">       <span class="comment">//提前触发一下 MyAnimal类的加载，这里默认是用的AppClassloder</span></span><br><span class="line">       Class&lt;?&gt; myAnimal = Class.forName(<span class="string">"com.test.classload.MyAnimal"</span>);<span class="comment">//只是声明，并没有引发类的加载;</span></span><br><span class="line">       myAnimal.newInstance();<span class="comment">//引发类的加载</span></span><br><span class="line">       Constructor&lt;?&gt; constructor = myDog.getConstructor();<span class="comment">//实列化</span></span><br><span class="line">       constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">       Object o = constructor.newInstance();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>查看输出，这里可以看到我们提前用了AppClassLoader 加载了一次 MyAnimal ，但是后面还是得被MyCustomClassLoader 加载了一次</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">findClass,自定义类加载器加载了指定的类</span><br><span class="line">findClass,自定义类加载器加载了指定的类</span><br><span class="line">MyAnimal by load sun.misc.Launcher$AppClassLoader@<span class="number">135f</span>baa4</span><br><span class="line">MyAnimal by load com.test.classload.MyCustomClassLoader@<span class="number">4</span>b67cf4d</span><br><span class="line">MyDog by Load com.test.classload.MyCustomClassLoader@<span class="number">4</span>b67cf4d</span><br></pre></td></tr></table></figure>
+<p><a name="BHive"></a></p>
+<h3 id="疑问2-，假如MyAnimal提前被MyCustomClassLoader加载了呢？"><a href="#疑问2-，假如MyAnimal提前被MyCustomClassLoader加载了呢？" class="headerlink" title="疑问2 ，假如MyAnimal提前被MyCustomClassLoader加载了呢？"></a>疑问2 ，假如MyAnimal提前被MyCustomClassLoader加载了呢？</h3></li>
+<li><p>我们修改都用MyCustomClassLoader加载一次</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Class&lt;?&gt; myDog = loader.loadClass(<span class="string">"com.test.classload.MyDog"</span>);</span><br><span class="line">Class&lt;?&gt; myAnimal = loader.loadClass(<span class="string">"com.test.classload.MyAnimal"</span>);<span class="comment">//只是声明，并没有引发类的加载;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>看输出，都是只会加载一次的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">findClass,自定义类加载器加载了指定的类</span><br><span class="line">findClass,自定义类加载器加载了指定的类</span><br><span class="line">MyAnimal by load com.test.classload.MyCustomClassLoader@<span class="number">4</span>b67cf4d</span><br><span class="line">MyDog by Load com.test.classload.MyCustomClassLoader@<span class="number">4</span>b67cf4d</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>JVM认为类的不同，是根据加载器和类全名来判断的，类之间的加载器不同，包名同，是属于不同的命名空间里，所以一个Anmial类可以被同时被不同的类加载器加载一次。而不同命名空间里的类在使用某个类的时候，发现并没有加载，就会使用该命名空间的类加载器去加载。<br><a name="nU2Ra"></a></p>
+<h2 id="包含关系"><a href="#包含关系" class="headerlink" title="包含关系"></a>包含关系</h2></li>
+<li><p>如果我们把MyDog改成这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyDog</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyDog</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"MyDog by Load "</span> + MyDog<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>())</span>;</span><br><span class="line">        <span class="keyword">new</span> MyAnimal();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同理，在我们实例化MyAnimal()时候，都是先用调用方MyDog的类加载器去加载，MyDog我们设置的父加载器不为空的，继续交给父加载器去加载。通常情况下我们写的都是由AppClassloder去加载的，都在一个命名空间下面。<br /></p>
+</li>
+</ul>
+<p><a name="nK9No"></a></p>
+<h2 id="父加载器会反过来用子加载器"><a href="#父加载器会反过来用子加载器" class="headerlink" title="父加载器会反过来用子加载器"></a>父加载器会反过来用子加载器</h2><p>比如我们在父加载器中去访问子加载器加载的类</p>
+<ul>
+<li><p>让Dog 包含 Anmial</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyDog</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyDog</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"MyDog by Load "</span> + MyDog<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>())</span>;</span><br><span class="line">        <span class="keyword">new</span> MyAnimal();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>让Anmial去访问一下Dog</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAnimal</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyAnimal</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"MyAnimal by load "</span> + MyAnimal<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>())</span>;</span><br><span class="line">        System.out.println(<span class="string">"MyAnimal:MyDog lode by "</span>+MyDog<span class="class">.<span class="keyword">class</span>.<span class="title">getClassLoader</span>())</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>这样在我们直接初始化Dog的时候，会触发MyAnmial去访问Dog类</p>
+</li>
+<li><p>我们直接移动一下编译好的Dog.class 让Dog使用自定义的类加载器，让Anmial使用使用AppClassLoder</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        MyCustomClassLoader loader = <span class="keyword">new</span> MyCustomClassLoader();</span><br><span class="line">        loader.setPath(<span class="string">"/Users/kenchan/GitHub/jvm_study/target/out/"</span>);</span><br><span class="line">        Class&lt;?&gt; myDog = loader.loadClass(<span class="string">"com.test.classload.MyDog"</span>);</span><br><span class="line">        Constructor&lt;?&gt; constructor = myDog.getConstructor();<span class="comment">//实列化</span></span><br><span class="line">        constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        Object o = constructor.newInstance();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们可以看到明明加载了MyDog类，却在Anmail打印<code>System.out.println(&quot;MyAnimal:MyDog lode by &quot;+MyDog.class.getClassLoader());</code>是抛错说找不到类</p>
+</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590421173800-9338d2cf-9795-44df-85ee-e7081046b434.png#align=left&display=inline&height=470&margin=%5Bobject%20Object%5D&name=image.png&originHeight=940&originWidth=1876&size=258350&status=done&style=none&width=938" alt="image.png"></p>
+<ul>
+<li><p>实际上的错误是由于AppClassLoader是访问不到它的子加载器加载的类的，属于不同的命名空间。AppClassLoder尝试自己去加载MyDog，结果没有找到。</p>
+</li>
+<li><p>举个继承的例子就是如果，子类是自定义加载器才能加载，父类通过AppClassloder才能加载，那么如果父类又引用了之类的话，父类的加载器AppClassloder是加载不了子类的。<br><a name="uAKmD"></a></p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>类加载器，及其父加载器共同构成一个命名空间，但父类命名空间不能反过来访问子加载器加载的类，子加载器是可以访问父加载器加载的类,子加载器的父加载器是一个，但是父加载器的子加载器是可能有多个的，所以由谁触发的加载，谁可以一直想上追，追不到就自己，但是上面的却不能向下追，因为下面有多个，不知道追谁。当加载某一个类的时候，会调用当前的命名空间的子加载器，然后采用双亲委派机制上交给父加载器加载。我们也是可以做到 MyDog 是自定义加载器，MyAnimal是AppClassloder的，只要不打破双亲委派机制。<br>在不打破双亲委派基础下，各个加载器之前的关系如下：</p>
+</li>
+<li><p>优先逐个交给最里面的加载器来做</p>
+</li>
+<li><p>里面的做不了，外面再来做</p>
+</li>
+<li><p>外面可以访问里面的加载的类</p>
+</li>
+<li><p>里面却不能访问外面的加载器加载的类</p>
+</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1590422558045-f03c036a-4e4f-42f2-a206-300c428e7b2a.png#align=left&display=inline&height=472&margin=%5Bobject%20Object%5D&name=image.png&originHeight=944&originWidth=1104&size=125316&status=done&style=none&width=552" alt="image.png"></p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Java/">Java</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2019/11/08/Java/%E5%A6%82%E4%BD%95%E5%AE%9A%E4%BD%8DCPU%E5%8D%A0%E7%94%A8%E6%9C%80%E9%AB%98%E7%9A%84%E4%BB%A3%E7%A0%81%E5%9D%97/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">如何定位CPU占用最高的代码块?</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/10/21/Java/staticfinalString%E4%B8%8E%E7%B1%BB%E7%9A%84%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96%E9%97%AE%E9%A2%98/"><span class="level-item">static final String 与类的加载与初始化问题</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-继承关系" href="#继承关系"><span>继承关系</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-疑问1，假如MyAnimal提前被AppClassloder加载了呢？" href="#疑问1，假如MyAnimal提前被AppClassloder加载了呢？"><span>疑问1，假如MyAnimal提前被AppClassloder加载了呢？</span></a></li><li><a class="is-flex toc-item" id="toc-item-疑问2-，假如MyAnimal提前被MyCustomClassLoader加载了呢？" href="#疑问2-，假如MyAnimal提前被MyCustomClassLoader加载了呢？"><span>疑问2 ，假如MyAnimal提前被MyCustomClassLoader加载了呢？</span></a></li></ul></li><li><a class="is-flex toc-item" id="toc-item-包含关系" href="#包含关系"><span>包含关系</span></a></li><li><a class="is-flex toc-item" id="toc-item-父加载器会反过来用子加载器" href="#父加载器会反过来用子加载器"><span>父加载器会反过来用子加载器</span></a></li><li><a class="is-flex toc-item" id="toc-item-结论" href="#结论"><span>结论</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>

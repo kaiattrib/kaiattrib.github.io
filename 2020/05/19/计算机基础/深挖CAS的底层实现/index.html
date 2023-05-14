@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>深挖CAS的底层实现 - Keeplooking</title><meta description="前言  代码层面，所有的锁在cpu层面都是一条条的指令，所有最终所有的锁，都要考底层指令的支持，CAS是代码层面比较常用的一种“无锁”,实际对应于cpu里面的几条指令，当然一个cpu有多个核下是如何解决锁的。在单核的时候，还可以通过关闭中断，来阻止操作系统调度。但是在多核的情况下，各个cpu是并行执行的，因此这个时候，就会出现，同时获取到锁的状态，而这个时候，通过禁止中断，是没有效果的，就需要引"><meta property="og:type" content="blog"><meta property="og:title" content="深挖CAS的底层实现"><meta property="og:url" content="http://yoursite.com/2020/05/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E6%B7%B1%E6%8C%96CAS%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="前言  代码层面，所有的锁在cpu层面都是一条条的指令，所有最终所有的锁，都要考底层指令的支持，CAS是代码层面比较常用的一种“无锁”,实际对应于cpu里面的几条指令，当然一个cpu有多个核下是如何解决锁的。在单核的时候，还可以通过关闭中断，来阻止操作系统调度。但是在多核的情况下，各个cpu是并行执行的，因此这个时候，就会出现，同时获取到锁的状态，而这个时候，通过禁止中断，是没有效果的，就需要引"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589796915591-589fa258-be1c-463f-b7c7-df2da45fcff4.png#align=left&amp;display=inline&amp;height=167&amp;margin=%5Bobject%20Object%5D&amp;originHeight=167&amp;originWidth=556&amp;size=0&amp;status=done&amp;style=none&amp;width=556"><meta property="article:published_time" content="2020-05-18T16:04:03.000Z"><meta property="article:modified_time" content="2023-05-14T07:53:19.970Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Java"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2020/png/501385/1589796915591-589fa258-be1c-463f-b7c7-df2da45fcff4.png#align=left&amp;display=inline&amp;height=167&amp;margin=%5Bobject%20Object%5D&amp;originHeight=167&amp;originWidth=556&amp;size=0&amp;status=done&amp;style=none&amp;width=556"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2020/05/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E6%B7%B1%E6%8C%96CAS%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"},"headline":"Keeplooking","image":[],"datePublished":"2020-05-18T16:04:03.000Z","dateModified":"2023-05-14T07:53:19.970Z","author":{"@type":"Person","name":"Ken Chan"},"description":"前言  代码层面，所有的锁在cpu层面都是一条条的指令，所有最终所有的锁，都要考底层指令的支持，CAS是代码层面比较常用的一种“无锁”,实际对应于cpu里面的几条指令，当然一个cpu有多个核下是如何解决锁的。在单核的时候，还可以通过关闭中断，来阻止操作系统调度。但是在多核的情况下，各个cpu是并行执行的，因此这个时候，就会出现，同时获取到锁的状态，而这个时候，通过禁止中断，是没有效果的，就需要引"}</script><link rel="canonical" href="http://yoursite.com/2020/05/19/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/%E6%B7%B1%E6%8C%96CAS%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/vs2015.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2020-05-18T16:04:03.000Z" title="2020-05-18T16:04:03.000Z">2020-05-19</time><span class="level-item"><a class="link-muted" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span><span class="level-item">9 分钟 读完 (大约 1343 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">深挖CAS的底层实现</h1><div class="content"><p><a name="DNgLa"></a></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>  代码层面，所有的锁在cpu层面都是一条条的指令，所有最终所有的锁，都要考底层指令的支持，CAS是代码层面比较常用的一种“无锁”,实际对应于cpu里面的几条指令，当然一个cpu有多个核下是如何解决锁的。在单核的时候，还可以通过关闭中断，来阻止操作系统调度。但是在多核的情况下，各个cpu是并行执行的，因此这个时候，就会出现，同时获取到锁的状态，而这个时候，通过禁止中断，是没有效果的，就需要引入一种机制实现多核本地缓存失效和内存全局的锁，涉及多级缓存的失效与同步，其实在计算机组成原理与操作系统里面有学的。</p>
+<a id="more"></a>
+<p><a name="vuQoK"></a></p>
+<h1 id="X86平台"><a href="#X86平台" class="headerlink" title="X86平台"></a>X86平台</h1><ul>
+<li><p>基于JVM <em>unsafe</em>.compareAndSwapInt</p>
+</li>
+<li><p>可以看到jdk里面的都是native实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">compareAndSwapObject</span><span class="params">(Object var1, <span class="keyword">long</span> var2, Object var4, Object var5)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">compareAndSwapInt</span><span class="params">(Object var1, <span class="keyword">long</span> var2, <span class="keyword">int</span> var4, <span class="keyword">int</span> var5)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">boolean</span> <span class="title">compareAndSwapLong</span><span class="params">(Object var1, <span class="keyword">long</span> var2, <span class="keyword">long</span> var4, <span class="keyword">long</span> var6)</span></span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可以在openjdk的源码src/share/vm/prims/unsafe.cpp里找到对应的C层面的调用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">UNSAFE_ENTRY(jboolean, Unsafe_CompareAndSwapInt(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jint e, jint x))</span><br><span class="line">  UnsafeWrapper(<span class="string">"Unsafe_CompareAndSwapInt"</span>);</span><br><span class="line">  oop p = JNIHandles::resolve(obj);</span><br><span class="line">  jint* addr = (jint *) index_oop_from_field_offset_long(p, offset);</span><br><span class="line">  <span class="keyword">return</span> (jint)(Atomic::cmpxchg(x, addr, e)) == e;</span><br><span class="line">UNSAFE_END</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们可以通过c++的atmoic库进行调试，发现汇编层面</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">untitled1`atomic_worker:</span><br><span class="line">-&gt;  <span class="number">0x10ce7fbed</span> &lt;+<span class="number">157</span>&gt;: lock   </span><br><span class="line">    <span class="number">0x10ce7fbee</span> &lt;+<span class="number">158</span>&gt;: cmpxchgb %cl, (%rdx)</span><br><span class="line">    <span class="number">0x10ce7fbf1</span> &lt;+<span class="number">161</span>&gt;: sete   %cl</span><br><span class="line">    <span class="number">0x10ce7fbf4</span> &lt;+<span class="number">164</span>&gt;: testb  $<span class="number">0x1</span>, %cl</span><br><span class="line">    <span class="number">0x10ce7fbf7</span> &lt;+<span class="number">167</span>&gt;: movb   %cl, <span class="number">-0x65</span>(%rbp)</span><br><span class="line">    <span class="number">0x10ce7fbfa</span> &lt;+<span class="number">170</span>&gt;: movb   %al, <span class="number">-0x66</span>(%rbp)</span><br><span class="line">    <span class="number">0x10ce7fbfd</span> &lt;+<span class="number">173</span>&gt;: jne    <span class="number">0x10ce7fc8f</span>               ; &lt;+<span class="number">319</span>&gt; [inlined] <span class="built_in">std</span>::__1::__atomic_base&lt;<span class="keyword">bool</span>, <span class="literal">false</span>&gt;::compare_exchange_strong(<span class="keyword">bool</span>&amp;, <span class="keyword">bool</span>, <span class="built_in">std</span>::__1::memory_order) + <span class="number">249</span> at main.cpp:<span class="number">30</span></span><br><span class="line">    <span class="number">0x10ce7fc03</span> &lt;+<span class="number">179</span>&gt;: jmp    <span class="number">0x10ce7fc86</span>               ; &lt;+<span class="number">310</span>&gt; [inlined] <span class="built_in">std</span>::__1::__atomic_base&lt;<span class="keyword">bool</span>, <span class="literal">false</span>&gt;::compare_exchange_strong(<span class="keyword">bool</span>&amp;, <span class="keyword">bool</span>, <span class="built_in">std</span>::__1::memory_order) + <span class="number">240</span> at main.cpp:<span class="number">30</span></span><br></pre></td></tr></table></figure>
+<p><a name="Jw7Yj"></a></p>
+<h2 id="lock与cmpxchgb"><a href="#lock与cmpxchgb" class="headerlink" title="lock与cmpxchgb"></a>lock与cmpxchgb</h2></li>
+<li><p>lock 并不是单独的一条可执行指令，你debug 使用next i 会发现是2条一起走了</p>
+</li>
+<li><p>LOCK前缀可确保CPU在操作期间对适当的高速缓存行具有排他性所有权，并提供某些其他排序保证。 这可以通过声明总线锁定来实现，但是CPU会尽可能避免这种情况。 如果总线被锁定，则仅在锁定指令期间。</p>
+</li>
+<li><p>cmpxchgb 系列就是真正的底层CAS的支持<br><a name="Z6Kxx"></a></p>
+<h1 id=""><a href="#" class="headerlink" title=""></a></h1><p><a name="lRNv7"></a></p>
+<h1 id="ARM平台"><a href="#ARM平台" class="headerlink" title="ARM平台"></a>ARM平台</h1></li>
+<li><p>基于android art</p>
+</li>
+</ul>
+<p><a name="CompareAndSetWeakAcquire"></a></p>
+<h2 id="CompareAndSetWeakAcquire"><a href="#CompareAndSetWeakAcquire" class="headerlink" title="CompareAndSetWeakAcquire"></a>CompareAndSetWeakAcquire</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Atomically replace the value with desired_value if it matches the expected_value. Prior writes</span></span><br><span class="line"> <span class="comment">// made to other memory locations by the thread that did the release become visible in this</span></span><br><span class="line"> <span class="comment">// thread.</span></span><br><span class="line"> <span class="function"><span class="keyword">bool</span> <span class="title">CompareAndSetWeakAcquire</span><span class="params">(T expected_value, T desired_value)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">this</span>-&gt;compare_exchange_weak(expected_value, desired_value, <span class="built_in">std</span>::memory_order_acquire);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li>通过ASdebug 得到native汇编</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-&gt;  <span class="number">0x7ea6aa6964</span> &lt;+<span class="number">220</span>&gt;: ldaxr  w10, [x22]</span><br><span class="line">    <span class="comment">//比较</span></span><br><span class="line">    <span class="number">0x7ea6aa6968</span> &lt;+<span class="number">224</span>&gt;: cmp    w10, w9</span><br><span class="line">    <span class="comment">//bne: 数据跳转指令，道标志寄存器中Z标志位不等于零时, 跳转到BNE后标签处</span></span><br><span class="line">    <span class="number">0x7ea6aa696c</span> &lt;+<span class="number">228</span>&gt;: b.ne   <span class="number">0x7ea6aa693c</span>              ; &lt;+<span class="number">180</span>&gt; [inlined] <span class="built_in">std</span>::__1::__atomic_base&lt;<span class="keyword">int</span>, <span class="literal">false</span>&gt;::compare_exchange_weak(<span class="keyword">int</span>&amp;, <span class="keyword">int</span>, <span class="built_in">std</span>::__1::memory_order) at atomic.h:<span class="number">159</span></span><br><span class="line">    <span class="number">0x7ea6aa6970</span> &lt;+<span class="number">232</span>&gt;: stxr   w9, w8, [x22]</span><br></pre></td></tr></table></figure>
+
+
+<p><a name="ldaxr"></a></p>
+<h2 id="ldaxr-stxr"><a href="#ldaxr-stxr" class="headerlink" title="ldaxr stxr"></a>ldaxr stxr</h2><p><br />Load-acquire exclusive register<br /></p>
+<ul>
+<li>ARMV8下的CAS并不是一条指令OK</li>
+<li>Load-Acquire Exclusive Register derives an address from a base register value, loads a 32-bit word or 64-bit doubleword from memory, and writes it to a register. <code>The memory access is atomic</code>. The PE marks the physical address being accessed as an exclusive access. This exclusive access mark is checked by Store Exclusive instructions. See Synchronization and semaphores. The instruction also has memory ordering semantics as described in <code>Load-Acquire, Store-Release</code>. For information about memory accesses see Load/Store addressing modes.</li>
+<li>内存访问是原子的。PE将要访问的物理地址标记为互斥访问</li>
+<li>LDXR指令，将状态从open状态切换到exclusive状态，STXR指令，将状态从exclusive状态切换到open状态，这个就表示store exclusive操作成功。</li>
+<li>为了解决多核情况下的锁竞争问题，arm引入了exclusive操作，并添加了相应的指令</li>
+<li>exclusive的操作的核心，就是会将锁，用一个状态机进行维护，该状态机有2种状态，open状态和exclusive状态。要想成功的对锁进行上锁，状态必须要从exclusive状态切换到open状态，其他状态，都是失败的。</li>
+<li>要达到目的，显然exclusive是对每个CPU核都是有效的</li>
+</ul>
+<p><br /><img src="https://cdn.nlark.com/yuque/0/2020/png/501385/1589796915591-589fa258-be1c-463f-b7c7-df2da45fcff4.png#align=left&display=inline&height=167&margin=%5Bobject%20Object%5D&originHeight=167&originWidth=556&size=0&status=done&style=none&width=556" alt=""><br /></p>
+<ul>
+<li>通过ldaxr/stxr指令实现在SMP系统中多核共享内存的互斥访问，也就是说原子操作是由独占访问指令”Load-Exclusive and Store-Exclusive”来实现的，其中最核心的地方在于系统通过exclusive monitor(一种简单的状态机)来监控独占访问。ldaxr/stxr可以保证任何情况下（包括被中断）的访问原子性。</li>
+<li>STXR指令和普通的STR指令，不同的是，该指令有返回值，表示store exclusive是否成功。如果成功，ws为0，不成功，ws为1</li>
+</ul>
+<p><a name="d17a0f0b"></a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>部分转载 <a href="http://www.lujun.org.cn/?p=4097">http://www.lujun.org.cn/?p=4097</a></li>
+<li><a href="http://shell-storm.org/armv8-a/ISA_v85A_A64_xml_00bet8/from-ISA_v84A_A64_xml_00bet7/ldaxr.html">http://shell-storm.org/armv8-a/ISA_v85A_A64_xml_00bet8/from-ISA_v84A_A64_xml_00bet7/ldaxr.html</a></li>
+<li><a href="https://www.cnblogs.com/i-arm-rex/p/6736170.html">https://www.cnblogs.com/i-arm-rex/p/6736170.html</a></li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Java/">Java</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/05/19/Android/AttachCurrentThread/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">JNI为什么要调用AttachCurrentThread？</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/05/16/Android/android-native-debug/"><span class="level-item">如何用AndroidStudio动态调试ART虚拟机？</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">63</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">13</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">14</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">25</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2022-11-20T09:33:38.000Z">2022-11-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/11/20/Android/android-emulator-5554/">Android 幽灵设备 emulator-5554 offline</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-20T03:04:24.000Z">2022-08-20</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/20/Android/json2map-cast-error/">Json转Map的后出现ClassCastException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-08-14T02:11:38.000Z">2022-08-14</time></p><p class="title is-6"><a class="link-muted" href="/2022/08/14/Android/bug-json-opt-long/">JsonObject.optLong 导致的Bug</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-04-30T09:00:26.000Z">2022-04-30</time></p><p class="title is-6"><a class="link-muted" href="/2022/04/30/Android/ui-timeout-kill-app-md/">App Debug 主线程，出现ANR后被系统Kill</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2022-02-13T13:55:48.000Z">2022-02-13</time></p><p class="title is-6"><a class="link-muted" href="/2022/02/13/%E5%88%86%E4%BA%AB/ios-download-old-app/">iOS如何安装旧版本app, app降级</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E5%88%86%E4%BA%AB/">分享</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">22</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-前言" href="#前言"><span>前言</span></a></li></ul><li><a class="is-flex toc-item" id="toc-item-X86平台" href="#X86平台"><span>X86平台</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-lock与cmpxchgb" href="#lock与cmpxchgb"><span>lock与cmpxchgb</span></a></li></ul></li><li><a class="is-flex toc-item" id="toc-item-" href="#"><span> </span></a></li><li><a class="is-flex toc-item" id="toc-item-ARM平台" href="#ARM平台"><span>ARM平台</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-CompareAndSetWeakAcquire" href="#CompareAndSetWeakAcquire"><span>CompareAndSetWeakAcquire</span></a></li><li><a class="is-flex toc-item" id="toc-item-ldaxr-stxr" href="#ldaxr-stxr"><span>ldaxr stxr</span></a></li><li><a class="is-flex toc-item" id="toc-item-参考" href="#参考"><span>参考</span></a></li></ul></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
