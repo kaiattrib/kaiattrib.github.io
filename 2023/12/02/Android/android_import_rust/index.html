@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Rust接入Android项目 - Keeplooking</title><meta description="背景本次讨论在已有的安卓项目工程中配置rust的方法，同时记录一下踩坑过程，首先本地pc端配置好rust的开发环境，配置rust的过程就默认你会了。"><meta property="og:type" content="blog"><meta property="og:title" content="Rust接入Android项目"><meta property="og:url" content="http://yoursite.com/2023/12/02/Android/android_import_rust/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="背景本次讨论在已有的安卓项目工程中配置rust的方法，同时记录一下踩坑过程，首先本地pc端配置好rust的开发环境，配置rust的过程就默认你会了。"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702113563058-88758968-c02e-41a3-8ff6-7e401eacba27.png#averageHue=%2328353c&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=318&amp;id=u5bfb4e6e&amp;originHeight=318&amp;originWidth=1008&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=27337&amp;status=done&amp;style=none&amp;taskId=u0a516a05-0178-48be-85f0-b3b348a1bbb&amp;title=&amp;width=1008"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702113755171-7481a74a-7d0f-4d9a-9a15-1c67c181c982.png#averageHue=%2327353b&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=690&amp;id=u41b78507&amp;originHeight=690&amp;originWidth=1120&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=73709&amp;status=done&amp;style=none&amp;taskId=uf1a728d6-6a3e-4108-ae84-580108122e8&amp;title=&amp;width=1120"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702115757079-d485a332-11d0-491b-aefa-b38e084228d7.png#averageHue=%23263339&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=1406&amp;id=uf482751d&amp;originHeight=1406&amp;originWidth=3410&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=397620&amp;status=done&amp;style=none&amp;taskId=ud5dd0974-231c-46ef-a917-4088a7d98a0&amp;title=&amp;width=3410"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702115924794-d1475a16-ebcf-48aa-82f8-d965f81690ef.png#averageHue=%2327333a&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=686&amp;id=u8a82dacb&amp;originHeight=686&amp;originWidth=3198&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=207836&amp;status=done&amp;style=none&amp;taskId=ucefb27d7-2027-430e-aa09-c9c5dba7503&amp;title=&amp;width=3198"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702116685678-22e111f3-4a2a-4882-8e9e-21c915230cc7.png#averageHue=%23263339&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=764&amp;id=ud6537bcf&amp;originHeight=764&amp;originWidth=1184&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=86156&amp;status=done&amp;style=none&amp;taskId=u9fcb775b-acb1-4297-bfd2-41290f22176&amp;title=&amp;width=1184"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702116955915-a68deee7-25f7-41b1-b28b-2f5853e21243.png#averageHue=%231e1f22&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=1228&amp;id=u7d926453&amp;originHeight=1228&amp;originWidth=3432&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=198342&amp;status=done&amp;style=none&amp;taskId=u069e62d3-97f4-4768-abdb-d6c166a73f0&amp;title=&amp;width=3432"><meta property="article:published_time" content="2023-12-02T10:19:06.000Z"><meta property="article:modified_time" content="2023-12-09T11:00:53.573Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Android"><meta property="article:tag" content="Rust"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2023/png/501385/1702113563058-88758968-c02e-41a3-8ff6-7e401eacba27.png#averageHue=%2328353c&amp;clientId=u3e8bed8e-2406-4&amp;from=paste&amp;height=318&amp;id=u5bfb4e6e&amp;originHeight=318&amp;originWidth=1008&amp;originalType=binary&amp;ratio=1&amp;rotation=0&amp;showTitle=false&amp;size=27337&amp;status=done&amp;style=none&amp;taskId=u0a516a05-0178-48be-85f0-b3b348a1bbb&amp;title=&amp;width=1008"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2023/12/02/Android/android_import_rust/"},"headline":"Keeplooking","image":[],"datePublished":"2023-12-02T10:19:06.000Z","dateModified":"2023-12-09T11:00:53.573Z","author":{"@type":"Person","name":"Ken Chan"},"description":"背景本次讨论在已有的安卓项目工程中配置rust的方法，同时记录一下踩坑过程，首先本地pc端配置好rust的开发环境，配置rust的过程就默认你会了。"}</script><link rel="canonical" href="http://yoursite.com/2023/12/02/Android/android_import_rust/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2023-12-02T10:19:06.000Z" title="2023-12-02T10:19:06.000Z">2023-12-02</time><span class="level-item"><a class="link-muted" href="/categories/Android/">Android</a></span><span class="level-item">10 分钟 读完 (大约 1447 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Rust接入Android项目</h1><div class="content"><p><a name="wIO3u"></a></p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>本次讨论在已有的安卓项目工程中配置rust的方法，同时记录一下踩坑过程，首先本地pc端配置好rust的开发环境，配置rust的过程就默认你会了。</p>
+<a id="more"></a>
+<p><a name="tyNvG"></a></p>
+<h2 id="项目配置"><a href="#项目配置" class="headerlink" title="项目配置"></a>项目配置</h2><p><a name="ptOVQ"></a></p>
+<h3 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h3><p>在已有的项目，我们推荐新建一个module，这里不需要native module，就是普通的java module。<br><a name="arN9F"></a></p>
+<h3 id=""><a href="#" class="headerlink" title=""></a><img src="https://cdn.nlark.com/yuque/0/2023/png/501385/1702113563058-88758968-c02e-41a3-8ff6-7e401eacba27.png#averageHue=%2328353c&clientId=u3e8bed8e-2406-4&from=paste&height=318&id=u5bfb4e6e&originHeight=318&originWidth=1008&originalType=binary&ratio=1&rotation=0&showTitle=false&size=27337&status=done&style=none&taskId=u0a516a05-0178-48be-85f0-b3b348a1bbb&title=&width=1008" alt="image.png"></h3><p>我们把rust工程可以放到module平级目录，或module下面都是可以的。<br><a name="KmABj"></a></p>
+<h3 id="-1"><a href="#-1" class="headerlink" title=""></a><img src="https://cdn.nlark.com/yuque/0/2023/png/501385/1702113755171-7481a74a-7d0f-4d9a-9a15-1c67c181c982.png#averageHue=%2327353b&clientId=u3e8bed8e-2406-4&from=paste&height=690&id=u41b78507&originHeight=690&originWidth=1120&originalType=binary&ratio=1&rotation=0&showTitle=false&size=73709&status=done&style=none&taskId=uf1a728d6-6a3e-4108-ae84-580108122e8&title=&width=1120" alt="image.png"></h3><p>我们把所有rust相关的代码，全部放到rustsdk工程目录，可以单独打开，单独成仓库，单独维护。和这个rust相关的桥接层，我们全部放在本地的java module里面。<br><a name="JnntD"></a></p>
+<h3 id="项目根grade配置"><a href="#项目根grade配置" class="headerlink" title="项目根grade配置"></a>项目根grade配置</h3><p>主要的思路是参考<a href="https://github.com/mozilla/rust-android-gradle">https://github.com/mozilla/rust-android-gradle</a><br />现在项目的跟目录下配置rust-android-gradle，具体的版本，可以参考github上最新的</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">buildscript &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        maven &#123;</span><br><span class="line">            url <span class="string">"https://plugins.gradle.org/m2/"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    dependencies &#123;</span><br><span class="line">        classpath <span class="string">"org.mozilla.rust-android-gradle:plugin:0.9.3"</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> <img src="https://cdn.nlark.com/yuque/0/2023/png/501385/1702115757079-d485a332-11d0-491b-aefa-b38e084228d7.png#averageHue=%23263339&clientId=u3e8bed8e-2406-4&from=paste&height=1406&id=uf482751d&originHeight=1406&originWidth=3410&originalType=binary&ratio=1&rotation=0&showTitle=false&size=397620&status=done&style=none&taskId=ud5dd0974-231c-46ef-a917-4088a7d98a0&title=&width=3410" alt="image.png"></p>
+<p><a name="KPrSw"></a></p>
+<h3 id="module-gradle配置"><a href="#module-gradle配置" class="headerlink" title="module gradle配置"></a>module gradle配置</h3><p>先给模块添加插件，</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply plugin: <span class="string">"org.mozilla.rust-android-gradle.rust-android"</span></span><br></pre></td></tr></table></figure>
+<p>然后主要的就是配置cargo这个dsl，具体的参数表意可以在github上面看<br /> <img src="https://cdn.nlark.com/yuque/0/2023/png/501385/1702115924794-d1475a16-ebcf-48aa-82f8-d965f81690ef.png#averageHue=%2327333a&clientId=u3e8bed8e-2406-4&from=paste&height=686&id=u8a82dacb&originHeight=686&originWidth=3198&originalType=binary&ratio=1&rotation=0&showTitle=false&size=207836&status=done&style=none&taskId=ucefb27d7-2027-430e-aa09-c9c5dba7503&title=&width=3198" alt="image.png"><br />需要主要的是，modlue 直到 sdk的目录，包含Cargo.toml的位置，libname需要和Cargo.toml文件里面指定的一致，其它按需配置即可。<br />按需要添加交叉编译器</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rustup target add armv7-linux-androideabi   # <span class="keyword">for</span> arm</span><br><span class="line">rustup target add aarch64-linux-android     # <span class="keyword">for</span> arm64</span><br></pre></td></tr></table></figure>
+<p>可选，每次编译的时候，触发一次rust的编译</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tasks.configureEach &#123; task -&gt;</span><br><span class="line">    <span class="keyword">if</span> ((task.name == <span class="string">'javaPreCompileDebug'</span> || task.name == <span class="string">'javaPreCompileRelease'</span>)) &#123;</span><br><span class="line">        task.dependsOn <span class="string">'cargoBuild'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>或者项目目录下，手动</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew cargoBuild  --stacktrace --info</span><br></pre></td></tr></table></figure>
+<p>上面基本安卓项目里面就配置完了。下面展示一个调用示例, java调一下rust。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.mylibrary;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Tools</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span>  &#123;</span><br><span class="line">        System.loadLibrary(<span class="string">"rust_sdk"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">int</span> <span class="title">addNum</span><span class="params">(<span class="keyword">int</span> num1,<span class="keyword">int</span> num2,)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a name="nTrh8"></a></p>
+<h3 id="Rust-SDK配置"><a href="#Rust-SDK配置" class="headerlink" title="Rust SDK配置"></a>Rust SDK配置</h3><p><a name="KgKHx"></a></p>
+<h4 id="Cargo-toml配置"><a href="#Cargo-toml配置" class="headerlink" title="Cargo.toml配置"></a>Cargo.toml配置</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[package]</span></span><br><span class="line"><span class="string">name</span> <span class="string">=</span> <span class="string">"rust_sdk"</span></span><br><span class="line"><span class="string">version</span> <span class="string">=</span> <span class="string">"0.1.0"</span></span><br><span class="line"></span><br><span class="line"><span class="string">[dependencies]</span></span><br><span class="line"><span class="string">log</span> <span class="string">=</span> <span class="string">"0.4.14"</span></span><br><span class="line"><span class="string">jni-sys</span> <span class="string">=</span> <span class="string">"0.3.0"</span></span><br><span class="line"><span class="string">jni</span> <span class="string">=</span> <span class="string">"0.21.1"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#可选，指定android下才添加依赖</span></span><br><span class="line"><span class="string">[target.'cfg(target_os</span> <span class="string">=</span> <span class="string">"android"</span><span class="string">)'.dependencies]</span></span><br><span class="line"><span class="comment">#ndk = &#123; version = "0.8.0" &#125;</span></span><br><span class="line"></span><br><span class="line"><span class="string">[lib]</span></span><br><span class="line"><span class="string">crate_type</span> <span class="string">=</span> <span class="string">["dylib"]</span></span><br><span class="line"><span class="comment">#指定源码文件</span></span><br><span class="line"><span class="string">path</span> <span class="string">=</span> <span class="string">"src/lib.rs"</span></span><br></pre></td></tr></table></figure>
+<p><a name="yFHl5"></a></p>
+<h4 id="lib-rs"><a href="#lib-rs" class="headerlink" title="lib.rs"></a>lib.rs</h4><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="keyword">crate</span> jni;</span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">crate</span> jni_sys;</span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> jni::JNIEnv;</span><br><span class="line"><span class="keyword">use</span> jni::objects::JClass;</span><br><span class="line"><span class="keyword">use</span> jni_sys::jint;</span><br><span class="line"></span><br><span class="line"><span class="meta">#[allow(non_snake_case)]</span></span><br><span class="line"><span class="meta">#[no_mangle]</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">unsafe</span> <span class="keyword">extern</span> <span class="function"><span class="keyword">fn</span> <span class="title">Java_com_example_mylibrary_Tools_addNum</span></span>(_env: JNIEnv, _: JClass, numa: jint, numb: jint) -&gt; jint &#123;</span><br><span class="line">    numb + numa</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，在Android Studio里面编译app调用这个方法就ok了。这里会有目标so，可以用检查一下导出函数。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/501385/1702116685678-22e111f3-4a2a-4882-8e9e-21c915230cc7.png#averageHue=%23263339&clientId=u3e8bed8e-2406-4&from=paste&height=764&id=ud6537bcf&originHeight=764&originWidth=1184&originalType=binary&ratio=1&rotation=0&showTitle=false&size=86156&status=done&style=none&taskId=u9fcb775b-acb1-4297-bfd2-41290f22176&title=&width=1184" alt="image.png"></p>
+<p>我没有直接把所有依赖放到 [target.’cfg(target_os = “android”)’.dependencies]下，是因为这样在pc端可以直接编译，检查错误，利于开发。</p>
+<p>比起👇🏻新建mod的方法，目前ide，还支持的不是很友好，也不好编程，错误也不好检查。只有去编译目标产物的时候才会发现。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/501385/1702116955915-a68deee7-25f7-41b1-b28b-2f5853e21243.png#averageHue=%231e1f22&clientId=u3e8bed8e-2406-4&from=paste&height=1228&id=u7d926453&originHeight=1228&originWidth=3432&originalType=binary&ratio=1&rotation=0&showTitle=false&size=198342&status=done&style=none&taskId=u069e62d3-97f4-4768-abdb-d6c166a73f0&title=&width=3432" alt="image.png"><br />而脱离目标平台的方法，一些逻辑我是可以提前测试验证的。<br><a name="uRbTY"></a></p>
+<h2 id="注意事项："><a href="#注意事项：" class="headerlink" title="注意事项："></a>注意事项：</h2><p><a name="GgoVp"></a></p>
+<h4 id="java-lang-UnsatisfiedLinkError-dlopen-failed-library-“librustsdk-so”-not-found"><a href="#java-lang-UnsatisfiedLinkError-dlopen-failed-library-“librustsdk-so”-not-found" class="headerlink" title="java.lang.UnsatisfiedLinkError: dlopen failed: library “librustsdk.so” not found"></a>java.lang.UnsatisfiedLinkError: dlopen failed: library “librustsdk.so” not found</h4><p>根据代码是用的什么loadLibrary方法，如果是</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.loadLibrary(<span class="string">"rust_sdk"</span>);</span><br></pre></td></tr></table></figure>
+<p>是不需要添加lib前缀的，尽管生成的lib文件带有前缀，例如 librust_sdk.so，还有需要留意你在grade里面指定的文件</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cargo &#123;</span><br><span class="line">    module = <span class="string">"./../rust_sdk"</span>       <span class="comment">// Or whatever directory contains your Cargo.toml</span></span><br><span class="line">    libname = <span class="string">"rust_sdk"</span>          <span class="comment">// Or whatever matches Cargo.toml's [package] name.</span></span><br><span class="line">    targets = [<span class="string">"arm64"</span>]  <span class="comment">// See bellow for a longer list of options</span></span><br><span class="line">    verbose = <span class="literal">true</span></span><br><span class="line">    profile = <span class="string">"debug"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a name="mBX9F"></a></p>
+<h4 id="java-lang-UnsatisfiedLinkError-No-implementation-found"><a href="#java-lang-UnsatisfiedLinkError-No-implementation-found" class="headerlink" title="java.lang.UnsatisfiedLinkError: No implementation found"></a>java.lang.UnsatisfiedLinkError: No implementation found</h4><p>这个是方法找不到，需要查一下，方法名称和参数是不是对应得上，一个排查方法，就是去看so的导出函数，有没有。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> ./ objdump -T librust_sdk.so | grep addNum</span><br><span class="line"></span><br><span class="line"><span class="number">000000000012e2</span>ec g    DF .text  <span class="number">0000000000000094</span>              Java_com_example_mylibrary_Tools_addNum</span><br></pre></td></tr></table></figure>
+<p>还有一个很容易忽略的点，<strong>大坑</strong> apk打包的流程如果是有缓存的话，并不会去检查so是否有更新，写完rust，直接就去编译apk，所以apk里面的so很有可能是旧的，如果是旧的，就需要重新rebuild一次，可以去检查一下。JNI的方法调用，推荐用方法名去做区分，不要用参数重载之类的方法，去做区分，如果你写了一个add函数，发现你多传一个参数，也是可以调的。</p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Android/">Android</a><a class="link-muted mr-2" rel="tag" href="/tags/Rust/">Rust</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/11/07/Android/kotlin_name_dup/"><span class="level-item">Kotlin的变量重名问题</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">69</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">13</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">16</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">17</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Android/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">26</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/"><span class="level-start"><span class="level-item">问题与经验</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2023-12-02T10:19:06.000Z">2023-12-02</time></p><p class="title is-6"><a class="link-muted" href="/2023/12/02/Android/android_import_rust/">Rust接入Android项目</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-11-07T09:30:35.000Z">2023-11-07</time></p><p class="title is-6"><a class="link-muted" href="/2023/11/07/Android/kotlin_name_dup/">Kotlin的变量重名问题</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/">Kotlin</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-10-14T10:09:12.000Z">2023-10-14</time></p><p class="title is-6"><a class="link-muted" href="/2023/10/14/Android/kotlin_android_init_no_method/">小心Kotlin下的构造函数NoSuchMethodException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Kotlin/">Kotlin</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-08-12T07:45:13.000Z">2023-08-12</time></p><p class="title is-6"><a class="link-muted" href="/2023/08/12/Android/compose_inspector/">解决 Compose Layout Inspector 不能用</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-05-14T12:39:42.000Z">2023-05-14</time></p><p class="title is-6"><a class="link-muted" href="/2023/05/14/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/typetojson/">泛型的反序列化</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/">问题与经验</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">13</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">10</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Compose/"><span class="tag">Compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">23</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rust/"><span class="tag">Rust</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%89%E8%A3%85/"><span class="tag">安装</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-背景" href="#背景"><span>背景</span></a></li><li><a class="is-flex toc-item" id="toc-item-项目配置" href="#项目配置"><span>项目配置</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-项目结构" href="#项目结构"><span>项目结构</span></a></li><li><a class="is-flex toc-item" id="toc-item-" href="#"><span> </span></a></li><li><a class="is-flex toc-item" id="toc-item--1" href="#-1"><span> </span></a></li><li><a class="is-flex toc-item" id="toc-item-项目根grade配置" href="#项目根grade配置"><span>项目根grade配置</span></a></li><li><a class="is-flex toc-item" id="toc-item-module-gradle配置" href="#module-gradle配置"><span>module gradle配置</span></a></li><li><a class="is-flex toc-item" id="toc-item-Rust-SDK配置" href="#Rust-SDK配置"><span>Rust SDK配置</span></a></li></ul></li><li><a class="is-flex toc-item" id="toc-item-注意事项：" href="#注意事项："><span>注意事项：</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2023  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
