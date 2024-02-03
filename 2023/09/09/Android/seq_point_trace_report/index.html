@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>一种事件流埋点的实现方案 - Keeplooking</title><meta description="问题背景：假定app端上有个场景，是一个有序的流程，在每个关键节点都是可能失败的。现存的方案是在每个关键节点都做一个埋点上报，有如下痛点：  埋点有丢失的情况，造成漏斗分析，后面比前面多的情况 DA数据分析侧，不方便分析整个流程，需要查询多个事件，再做关联，SQL过于复杂 RD侧也不能很好的处理反馈和关注问题"><meta property="og:type" content="blog"><meta property="og:title" content="一种事件流埋点的实现方案"><meta property="og:url" content="http://yoursite.com/2023/09/09/Android/seq_point_trace_report/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="问题背景：假定app端上有个场景，是一个有序的流程，在每个关键节点都是可能失败的。现存的方案是在每个关键节点都做一个埋点上报，有如下痛点：  埋点有丢失的情况，造成漏斗分析，后面比前面多的情况 DA数据分析侧，不方便分析整个流程，需要查询多个事件，再做关联，SQL过于复杂 RD侧也不能很好的处理反馈和关注问题"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/jpeg/501385/1668940682892-cff1ab78-51ea-4098-a4e0-c6d20d5be40d.jpeg"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/jpeg/501385/1668942095124-9d6f155c-7d3d-4dd9-bbd9-a2da16b8ff51.jpeg"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2024/jpeg/501385/1706947041205-01869398-0730-43c1-bf5a-4659ddf86e63.jpeg"><meta property="og:image" content="https://cdn.nlark.com/yuque/0/2024/jpeg/501385/1706947897988-73f19f42-3896-4bc9-8f34-467342bd2759.jpeg"><meta property="article:published_time" content="2023-09-09T08:44:08.000Z"><meta property="article:modified_time" content="2024-02-03T08:48:36.804Z"><meta property="article:author" content="Ken Chan"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="https://cdn.nlark.com/yuque/0/2022/jpeg/501385/1668940682892-cff1ab78-51ea-4098-a4e0-c6d20d5be40d.jpeg"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2023/09/09/Android/seq_point_trace_report/"},"headline":"Keeplooking","image":[],"datePublished":"2023-09-09T08:44:08.000Z","dateModified":"2024-02-03T08:48:36.804Z","author":{"@type":"Person","name":"Ken Chan"},"description":"问题背景：假定app端上有个场景，是一个有序的流程，在每个关键节点都是可能失败的。现存的方案是在每个关键节点都做一个埋点上报，有如下痛点：  埋点有丢失的情况，造成漏斗分析，后面比前面多的情况 DA数据分析侧，不方便分析整个流程，需要查询多个事件，再做关联，SQL过于复杂 RD侧也不能很好的处理反馈和关注问题"}</script><link rel="canonical" href="http://yoursite.com/2023/09/09/Android/seq_point_trace_report/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2023-09-09T08:44:08.000Z" title="2023-09-09T08:44:08.000Z">2023-09-09</time><span class="level-item"><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/">问题与经验</a></span><span class="level-item">9 分钟 读完 (大约 1391 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">一种事件流埋点的实现方案</h1><div class="content"><h3 id="问题背景："><a href="#问题背景：" class="headerlink" title="问题背景："></a>问题背景：</h3><p>假定app端上有个场景，是一个有序的流程，在每个关键节点都是可能失败的。现存的方案是在每个关键节点都做一个埋点上报，有如下痛点：</p>
+<ul>
+<li>埋点有丢失的情况，造成漏斗分析，后面比前面多的情况</li>
+<li>DA数据分析侧，不方便分析整个流程，需要查询多个事件，再做关联，SQL过于复杂</li>
+<li>RD侧也不能很好的处理反馈和关注问题<a id="more"></a>
+<img src="https://cdn.nlark.com/yuque/0/2022/jpeg/501385/1668940682892-cff1ab78-51ea-4098-a4e0-c6d20d5be40d.jpeg" alt=""></li>
+</ul>
+<h3 id="埋点方案改进"><a href="#埋点方案改进" class="headerlink" title="埋点方案改进"></a>埋点方案改进</h3><p>方案：在app侧做整个事件流的打点，对整个事件流做一起的上报。<br />接口设计：整个事件流在开始节，生成id，后续这个事件流中的所有打点都记录在这个id流中，记录的顺序就是发生的顺序。暴露一个接口，提供一个默认实现，开放部分方法可重写。提供基本的方法，新建记录，插入记录，和触发上报。<br /><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/501385/1668942095124-9d6f155c-7d3d-4dd9-bbd9-a2da16b8ff51.jpeg" alt=""><br />数据格式:  采用json格式,大致格式如下，可自由增添加，后端用clickhouse方便处理josn数据</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"local_id"</span>:<span class="string">""</span>,</span><br><span class="line">  <span class="attr">"server_id"</span>:<span class="string">""</span>,</span><br><span class="line">  <span class="attr">"event"</span>:[]</span><br><span class="line">  <span class="string">"extra"</span>:&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="问题点"><a href="#问题点" class="headerlink" title="问题点"></a>问题点</h3><h4 id="事件流ID怎么确定？"><a href="#事件流ID怎么确定？" class="headerlink" title="事件流ID怎么确定？"></a>事件流ID怎么确定？</h4><p>由业务方指定，在newRecord的时候传入。端上的记录依赖local_id在记录产生的时候，就记录。在本地用<br />KV的方式存储，不过本地持久化记录的value是需要加一些状态字段的，标记这条记录的状态。server_id是因为这个事件流在后面的某个阶段才会产生一个关联的id，在后端关联查询，例如的场景就是直播连麦主播和嘉宾的链接事件关联，就可以用这个抽象的server_id<br /><img src="https://cdn.nlark.com/yuque/0/2024/jpeg/501385/1706947041205-01869398-0730-43c1-bf5a-4659ddf86e63.jpeg" alt=""></p>
+<h4 id="数据的一致性？"><a href="#数据的一致性？" class="headerlink" title="数据的一致性？"></a>数据的一致性？</h4><p>同一个事件流可能是在多个线程里面操作的， 某个线程get一次record(json)之后会，做个修改之后，会将这个更新保存下来。会存在一种情况，后面的提交修改可能会被前面的覆盖的情况。<br /><img src="https://cdn.nlark.com/yuque/0/2024/jpeg/501385/1706947897988-73f19f42-3896-4bc9-8f34-467342bd2759.jpeg" alt=""><br />为了解决这个问题，我们的整体的思路是一个单线程模型，安卓里面使用HanderThread,所有的操作都是在一个线程里面提交，但是也是会有覆盖的情况，因为多线程操作，它的get和set可能是分离的。如果我们可以保证每个线程里面的操作get和set是连续的，那么就能解决这个问。既然要get和set是连续的，最简单的办法就是单线程中这2个操作是连续的就可以了，所以我们的模型规定了2个模型，一个是简单的获取值，这个接口可以是同步的或异步的返回都行，不涉及值的修改。如果是涉及值的修改，只提供异步的接口，单线程队列里面去处理回调，调用方，在回调里面进行值的修改。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">func sync getRecord(recordId:String):JSON</span><br><span class="line">func async editRecord(recordId:String，callback:JSON)</span><br></pre></td></tr></table></figure>
+<p>例如一个线程post了一个修改，在消息队列处理这个消息的时候，也就是回调里面拿到的record就是最新的，此刻这个线程被这个消息占有，可以在回调里面做对这个record的各种修改，在回调结束的时候，自动做保存。这些都我们框架设计的能力，业务调用方，只需要在回调里面写自定义的修改逻辑就可以了，可以不感知具体的实现。</p>
+<h5 id="自定义JSON的merge"><a href="#自定义JSON的merge" class="headerlink" title="自定义JSON的merge"></a>自定义JSON的merge</h5><p>一个record的更新，其实是一个json的更新，所以这里需要定义json的合并规则，如果是数组类型的，就追加在后面，或者就是后面的替换前面的。</p>
+<h4 id="如何保证埋点不丢失？"><a href="#如何保证埋点不丢失？" class="headerlink" title="如何保证埋点不丢失？"></a>如何保证埋点不丢失？</h4><p>可以通过以下手段来保证记录的正确的，尽量多的上报到server做统计，<br />app突然被kill？记录怎么办？利用的是mmap，把磁盘映射成内存的来访问，访问快，并且利用操作系统的机制，数据会尽可能的保留，计算app被突然kill，我们也可以获得一些有用信息，做问题分析。</p>
+<ul>
+<li>首先灵活的配置方式主动触发上报的方式。利用record的时机场景，支持配置超时。例如这个事件流，正常的情况也就最多1分钟，超过1分钟，就主动触发上报。当然也支持业务调用主动触发上报。</li>
+<li>轮训时间间隔，检查本地记录是否可以上报。</li>
+<li>app启动的时候，支持定制的延时上报本地的记录。</li>
+<li>添加日期过期机制，丢掉无用的数据，减少server分析压力。</li>
+</ul>
+</div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2023/10/14/Android/kotlin_android_init_no_method/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">小心Kotlin下的构造函数NoSuchMethodException</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/08/12/Android/compose_inspector/"><span class="level-item">解决 Compose Layout Inspector 不能用</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">71</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">13</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">16</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">18</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Android/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">26</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/"><span class="level-start"><span class="level-item">问题与经验</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2023-12-02T10:19:06.000Z">2023-12-02</time></p><p class="title is-6"><a class="link-muted" href="/2023/12/02/Android/android_import_rust/">Android项目接入Rust</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-11-07T09:30:35.000Z">2023-11-07</time></p><p class="title is-6"><a class="link-muted" href="/2023/11/07/Android/kotlin_name_dup/">Kotlin的变量重名问题</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/">Kotlin</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-10-14T10:09:12.000Z">2023-10-14</time></p><p class="title is-6"><a class="link-muted" href="/2023/10/14/Android/kotlin_android_init_no_method/">小心Kotlin下的构造函数NoSuchMethodException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Kotlin/">Kotlin</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-09-09T08:44:08.000Z">2023-09-09</time></p><p class="title is-6"><a class="link-muted" href="/2023/09/09/Android/seq_point_trace_report/">一种事件流埋点的实现方案</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/">问题与经验</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-08-12T07:45:13.000Z">2023-08-12</time></p><p class="title is-6"><a class="link-muted" href="/2023/08/12/Android/compose_inspector/">解决 Compose Layout Inspector 不能用</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">10</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Compose/"><span class="tag">Compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">23</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rust/"><span class="tag">Rust</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%89%E8%A3%85/"><span class="tag">安装</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-问题背景：" href="#问题背景："><span>问题背景：</span></a></li><li><a class="is-flex toc-item" id="toc-item-埋点方案改进" href="#埋点方案改进"><span>埋点方案改进</span></a></li><li><a class="is-flex toc-item" id="toc-item-问题点" href="#问题点"><span>问题点</span></a></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2024  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
