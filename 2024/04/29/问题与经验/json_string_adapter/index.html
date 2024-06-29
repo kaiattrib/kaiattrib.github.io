@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Expected a string but was BEGIN_OBJECT - Keeplooking</title><meta description="问题背景针对一个接口，server给出的是一个JSON, 端上想要用string去接收"><meta property="og:type" content="blog"><meta property="og:title" content="Expected a string but was BEGIN_OBJECT"><meta property="og:url" content="http://yoursite.com/2024/04/29/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/json_string_adapter/"><meta property="og:site_name" content="Keeplooking"><meta property="og:description" content="问题背景针对一个接口，server给出的是一个JSON, 端上想要用string去接收"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="http://yoursite.com/img/og_image.png"><meta property="article:published_time" content="2024-04-29T08:27:11.000Z"><meta property="article:modified_time" content="2024-06-29T11:33:56.495Z"><meta property="article:author" content="Ken Chan"><meta property="article:tag" content="Bug"><meta property="article:tag" content="JSON"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://yoursite.com/2024/04/29/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/json_string_adapter/"},"headline":"Keeplooking","image":["http://yoursite.com/img/og_image.png"],"datePublished":"2024-04-29T08:27:11.000Z","dateModified":"2024-06-29T11:33:56.495Z","author":{"@type":"Person","name":"Ken Chan"},"description":"问题背景针对一个接口，server给出的是一个JSON, 端上想要用string去接收"}</script><link rel="canonical" href="http://yoursite.com/2024/04/29/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/json_string_adapter/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.13.0/css/all.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css"><link rel="stylesheet" href="https://cdn.staticfile.org/entypo/2.0/entypo.woff"><link rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/css/justifiedGallery.min.css"><!--!--><script src="https://cdnjs.loli.net/ajax/libs/pace/1.0.2/pace.min.js"></script><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container {
+  overflow: auto hidden;
+}
+
+mjx-container + br {
+  display: none;
+}
+</style></head><body class="is-3-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">主页</a><a class="navbar-item" href="/archives">归档</a><a class="navbar-item" href="/categories">分类</a><a class="navbar-item" href="/tags">标签</a><a class="navbar-item" href="/suibi/suibi.html">随笔</a><a class="navbar-item" href="/comments">关于</a></div><div class="navbar-end"><a class="navbar-item is-hidden-tablet catalogue" title="目录" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="搜索" href="javascript:;" style="font-size: 1.5em;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><time class="level-item" dateTime="2024-04-29T08:27:11.000Z" title="2024-04-29T08:27:11.000Z">2024-04-29</time><span class="level-item"><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/">问题与经验</a><span> / </span><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/Java/">Java</a></span><span class="level-item">8 分钟 读完 (大约 1182 个字)</span></div></div><h1 class="title is-3 is-size-4-mobile">Expected a string but was BEGIN_OBJECT</h1><div class="content"><h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>针对一个接口，server给出的是一个JSON, 端上想要用string去接收</p>
+<a id="more"></a>
+<p>我们测试可以用<a href="https://jsonplaceholder.typicode.com/posts/3">https://jsonplaceholder.typicode.com/posts/3</a>来测试</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"userId"</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">"id"</span>: <span class="number">3</span>,</span><br><span class="line">  <span class="attr">"title"</span>: <span class="string">"title"</span>,</span><br><span class="line">  <span class="attr">"body"</span>: <span class="string">"body"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们是不是能用直接用String来接收？</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">ApiService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@GET(<span class="meta-string">"/posts/33"</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getPage</span><span class="params">()</span></span>: Single&lt;String&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>这里我们可以会想都是字符串，肯定是可以的，但是转念一下，JSON和JSON字符串是不一样的，<br>这个是JSON</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"userId"</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="string">"id"</span>: <span class="number">3</span>,</span><br><span class="line">  <span class="string">"title"</span>: <span class="string">"title"</span>,</span><br><span class="line">  <span class="string">"body"</span>: <span class="string">"body"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是JSON字符串 “{&quot;userId&quot;:1,&quot;id&quot;:3,&quot;title&quot;:&quot;title&quot;,&quot;body&quot;:&quot;body&quot;}”<br>我们直接来测试, 会得到这样的错误❎， 大意是期望的是一个String，但是得到是一个JSON类型<br>Expected a string but was BEGIN_OBJECT at line 1 column 2 path $<br>当我们调用一个interface的api的时候，通过注解登拿到这个方法的返回类型，然后去找Response Body Converter</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;<span class="keyword">init</span>&gt;:<span class="number">33</span>, GsonResponseBodyConverter (retrofit2.converter.gson)</span><br><span class="line">responseBodyConverter:<span class="number">65</span>, GsonConverterFactory (retrofit2.converter.gson)</span><br><span class="line">nextResponseBodyConverter:<span class="number">362</span>, Retrofit (retrofit2)</span><br><span class="line">responseBodyConverter:<span class="number">345</span>, Retrofit (retrofit2)</span><br><span class="line">createResponseConverter:<span class="number">124</span>, HttpServiceMethod (retrofit2)</span><br><span class="line">parseAnnotations:<span class="number">85</span>, HttpServiceMethod (retrofit2)</span><br><span class="line">parseAnnotations:<span class="number">39</span>, ServiceMethod (retrofit2)</span><br><span class="line">loadServiceMethod:<span class="number">202</span>, Retrofit (retrofit2)</span><br><span class="line">invoke:<span class="number">160</span>, Retrofit$<span class="number">1</span> (retrofit2)</span><br><span class="line">getPage:-<span class="number">1</span>, $Proxy0 (jdk.proxy1)</span><br></pre></td></tr></table></figure>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; Converter&lt;ResponseBody, T&gt; nextResponseBodyConverter(</span><br><span class="line">    <span class="meta">@Nullable</span> Converter.Factory skipPast, Type type, Annotation[] annotations) &#123;</span><br><span class="line">  <span class="comment">// 其实就是去converterFactories里面找</span></span><br><span class="line">  int start = converterFactories.indexOf(skipPast) + <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">for</span> (int i = start, count = converterFactories.size(); i &lt; count; i++) &#123;</span><br><span class="line">    Converter&lt;ResponseBody, ?&gt; converter =</span><br><span class="line">        converterFactories.<span class="keyword">get</span>(i).responseBodyConverter(type, annotations, <span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (converter != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">//noinspection unchecked</span></span><br><span class="line">      <span class="keyword">return</span> (Converter&lt;ResponseBody, T&gt;) converter;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>走到在我们注册的GsonConverterFactory 里面的responseBodyConverter实现里面</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">public</span> static GsonConverterFactory create(Gson gson) &#123;</span><br><span class="line">   </span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> Converter&lt;ResponseBody, ?&gt; responseBodyConverter(</span><br><span class="line">      Type type, Annotation[] annotations, Retrofit retrofit) &#123;</span><br><span class="line">      <span class="comment">// 去找具体的转换类型，例如本案例就是 type就是 java.lang.String</span></span><br><span class="line">    TypeAdapter&lt;?&gt; adapter = gson.getAdapter(TypeToken.<span class="keyword">get</span>(type));</span><br><span class="line">    <span class="keyword">return</span> new GsonResponseBodyConverter&lt;&gt;(gson, adapter);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终走到com.google.gson.Gson#getAdapter(com.google.gson.reflect.TypeToken<T>) 获取到一个TypeAdapter<String> , 其实在Gson()的构造方法中，一些基本类型和内置类型，提前加到了factories里面，</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; TypeAdapter&lt;T&gt; getAdapter(TypeToken&lt;T&gt; type) &#123;</span><br><span class="line">  TypeAdapter&lt;?&gt; cached = typeTokenCache.<span class="keyword">get</span>(type == <span class="literal">null</span> ? NULL_KEY_SURROGATE : type);</span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    FutureTypeAdapter&lt;T&gt; call = new FutureTypeAdapter&lt;T&gt;();</span><br><span class="line">    threadCalls.put(type, call);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (TypeAdapterFactory factory : factories) &#123;</span><br><span class="line">      <span class="comment">// 找一个能处理String的TypeAdapterFactory </span></span><br><span class="line">      TypeAdapter&lt;T&gt; candidate = factory.create(<span class="keyword">this</span>, type);</span><br><span class="line">      <span class="comment">// 这里是基本类型，返回了TypeAdapters</span></span><br><span class="line">      <span class="keyword">if</span> (candidate != <span class="literal">null</span>) &#123;</span><br><span class="line">        call.setDelegate(candidate);</span><br><span class="line">        typeTokenCache.put(type, candidate);</span><br><span class="line">        <span class="keyword">return</span> candidate;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="comment">//</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Type adapters for basic types.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">TypeAdapters</span></span></span><br></pre></td></tr></table></figure>
+<p>TypeAdapters 可以来处理基本类型解析<br>Response的解析，从retrofit2.OkHttpCall#parseResponse的开始会走到</p>
+<ul>
+<li><p>retrofit2.converter.gson.GsonResponseBodyConverter#convert</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> T convert(ResponseBody value) throws IOException &#123;</span><br><span class="line">  JsonReader jsonReader = gson.newJsonReader(value.charStream());</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 这个adapter就是前面找到的TypeAdapters</span></span><br><span class="line">    T result = adapter.read(jsonReader);</span><br><span class="line">    <span class="keyword">if</span> (jsonReader.peek() != JsonToken.END_DOCUMENT) &#123;</span><br><span class="line">      <span class="keyword">throw</span> new JsonIOException(<span class="string">"JSON document was not fully consumed."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    value.close();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来就是由TypeAdapters去解析成想要的String类型，<br>会走到STRING的read中，由于这个是string类型read，就确定需要读出一个string，继续走到nextString中</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> static <span class="keyword">final</span> TypeAdapter&lt;String&gt; STRING = new TypeAdapter&lt;String&gt;() &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> String read(JsonReader <span class="keyword">in</span>) throws IOException &#123;</span><br><span class="line">    <span class="comment">// 这里peek，可以判断出一个json类型</span></span><br><span class="line">    JsonToken peek = <span class="keyword">in</span>.peek();</span><br><span class="line">    <span class="keyword">if</span> (peek == JsonToken.NULL) &#123;</span><br><span class="line">      <span class="keyword">in</span>.nextNull();</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* coerce booleans to strings for backwards compatibility */</span></span><br><span class="line">    <span class="keyword">if</span> (peek == JsonToken.BOOLEAN) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Boolean</span>.toString(<span class="keyword">in</span>.nextBoolean());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">in</span>.nextString();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>com.google.gson.stream.JsonReader#nextString</p>
+</li>
+</ul>
+<p>在前面的peek中peeked等于了 PEEKED_BEGIN_OBJECT，表面当前是一个BEGIN_OBJECT标识</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">case <span class="string">'&#123;'</span>:</span><br><span class="line">  <span class="keyword">return</span> peeked = PEEKED_BEGIN_OBJECT;</span><br></pre></td></tr></table></figure>
+<p>在 nextString()中，发现p执行的所有case中，没有匹配的BEGIN_OBJECT，于是<strong>抛错</strong>了</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String nextString() throws IOException &#123;</span><br><span class="line">  <span class="comment">// 当前的指针，当前的指针指向的是 PEEKED_BEGIN_OBJECT</span></span><br><span class="line">  int p = peeked;</span><br><span class="line">  <span class="keyword">if</span> (p == PEEKED_NONE) &#123;</span><br><span class="line">    p = doPeek();</span><br><span class="line">  &#125;</span><br><span class="line">  String result;</span><br><span class="line">  <span class="comment">// 如果是这些基本类，这里实际上进行了toString的简单转换</span></span><br><span class="line">  <span class="keyword">if</span> (p == PEEKED_UNQUOTED) &#123;</span><br><span class="line">    result = nextUnquotedValue();</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (p == PEEKED_SINGLE_QUOTED) &#123;</span><br><span class="line">    result = nextQuotedValue(<span class="string">'\''</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (p == PEEKED_DOUBLE_QUOTED) &#123;</span><br><span class="line">    result = nextQuotedValue(<span class="string">'"'</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (p == PEEKED_BUFFERED) &#123;</span><br><span class="line">    result = peekedString;</span><br><span class="line">    peekedString = <span class="literal">null</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (p == PEEKED_LONG) &#123;</span><br><span class="line">    result = <span class="built_in">Long</span>.toString(peekedLong);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (p == PEEKED_NUMBER) &#123;</span><br><span class="line">    result = new String(buffer, pos, peekedNumberLength);</span><br><span class="line">    pos += peekedNumberLength;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> new IllegalStateException(<span class="string">"Expected a string but was "</span> + peek() + locationString());</span><br><span class="line">  &#125;</span><br><span class="line">  peeked = PEEKED_NONE;</span><br><span class="line">  pathIndices[stackSize - <span class="number">1</span>]++;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>想要解决这个问题，就是找到正确的TypeAdapter，要么更改类型，要么添加新的TypeAdapter处理string</p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><h3 id="用内置类型"><a href="#用内置类型" class="headerlink" title="用内置类型"></a>用内置类型</h3><ul>
+<li><p>server直接返回string字符串类型</p>
+</li>
+<li><p>端上换个接收类型，可以用gson包的 com.google.gson.JsonElement  或者    okhttp包里面的ResponseBody</p>
+<ul>
+<li>因为JsonElement的TypeAdapter也在Gson里面默认构造好了factories.add(TypeAdapters.JSON_ELEMENT_FACTORY);和String相比就是它的表示类型不一样</li>
+<li>因为ResponseBody对应的retrofit2.BuiltInConverters.BufferingResponseBodyConverter在retrofit包里内置了</li>
+</ul>
+</li>
+<li><p>自定义一个TypeAdapter</p>
+<h3 id="自定义TypeAdapter"><a href="#自定义TypeAdapter" class="headerlink" title="自定义TypeAdapter"></a>自定义TypeAdapter</h3><p>我测试用的 ‘com.google.code.gson:gson:2.9.0’， 通过GsonBuilder来注册一个CustomStringTypeAdapter</p>
+</li>
+<li><p> CustomStringTypeAdapter</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CustomStringTypeAdapter</span> : <span class="type">TypeAdapter</span>&lt;<span class="type">String</span>&gt;</span>() &#123;</span><br><span class="line"><span class="comment">// ....</span></span><br><span class="line">    <span class="meta">@Throws(IOException::class)</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">read</span><span class="params">(`<span class="keyword">in</span>`: <span class="type">JsonReader</span>)</span></span>: String? &#123;</span><br><span class="line">        <span class="comment">// 处理读取JsonReader里面内容,</span></span><br><span class="line">        <span class="keyword">return</span> context</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注册使用</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> gson: Gson = GsonBuilder()</span><br><span class="line">      .registerTypeAdapter(String::<span class="class"><span class="keyword">class</span>.<span class="title">java</span>, <span class="type">CustomStringTypeAdapter</span></span>())</span><br><span class="line">      .create()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>com.google.gson.Gson#Gson</p>
+<p>在Gson的构造函数中，会提前加到factories中，这样保证了优先级</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// .....</span></span><br><span class="line"><span class="comment">// users' type adapters  我们自定义的CustomStringTypeAdapter</span></span><br><span class="line">factories.addAll(factoriesToBeAdded);</span><br><span class="line"></span><br><span class="line"><span class="comment">// type adapters for basic platform types</span></span><br><span class="line">factories.add(TypeAdapters.STRING_FACTORY);</span><br><span class="line">factories.add(TypeAdapters.INTEGER_FACTORY);</span><br><span class="line">factories.add(TypeAdapters.BOOLEAN_FACTORY);</span><br><span class="line"><span class="comment">// .....</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Bug/">Bug</a><a class="link-muted mr-2" rel="tag" href="/tags/JSON/">JSON</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2023/12/02/Android/android_import_rust/"><span class="level-item">Android项目接入Rust</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-2-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="is-rounded" src="/img/myavatar.png" alt="Ken"></figure><p class="title is-size-4 is-block line-height-inherit">Ken</p><p class="is-size-6 is-block">爱于心，鉴于行</p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">文章</p><a href="/archives"><p class="title">73</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">分类</p><a href="/categories"><p class="title">15</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">标签</p><a href="/tags"><p class="title">18</p></a></div></div></nav></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">分类</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Android/"><span class="level-start"><span class="level-item">Android</span></span><span class="level-end"><span class="level-item tag">17</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/Android/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Android/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/LeetCode/"><span class="level-start"><span class="level-item">LeetCode</span></span><span class="level-end"><span class="level-item tag">17</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E5%88%86%E4%BA%AB/"><span class="level-start"><span class="level-item">分享</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%90%9E%E6%9C%BA/"><span class="level-start"><span class="level-item">搞机</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E6%A1%86%E6%9E%B6/"><span class="level-start"><span class="level-item">框架</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">计算机基础</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/"><span class="level-start"><span class="level-item">语言基础</span></span><span class="level-end"><span class="level-item tag">26</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/C/"><span class="level-start"><span class="level-item">C++</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">21</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/"><span class="level-start"><span class="level-item">Kotlin</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/"><span class="level-start"><span class="level-item">问题与经验</span></span><span class="level-end"><span class="level-item tag">4</span></span></a><ul class="mr-0"><li><a class="level is-mobile is-marginless" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/Java/"><span class="level-start"><span class="level-item">Java</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></li><li><a class="level is-mobile is-marginless" href="/categories/%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84/"><span class="level-start"><span class="level-item">项目架构</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">最新文章</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2024-04-29T08:27:11.000Z">2024-04-29</time></p><p class="title is-6"><a class="link-muted" href="/2024/04/29/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/json_string_adapter/">Expected a string but was BEGIN_OBJECT</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/">问题与经验</a> / <a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/Java/">Java</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-12-02T10:19:06.000Z">2023-12-02</time></p><p class="title is-6"><a class="link-muted" href="/2023/12/02/Android/android_import_rust/">Android项目接入Rust</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-11-07T09:30:35.000Z">2023-11-07</time></p><p class="title is-6"><a class="link-muted" href="/2023/11/07/Android/kotlin_name_dup/">Kotlin的变量重名问题</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/">语言基础</a> / <a class="link-muted" href="/categories/%E8%AF%AD%E8%A8%80%E5%9F%BA%E7%A1%80/Kotlin/">Kotlin</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-10-14T10:09:12.000Z">2023-10-14</time></p><p class="title is-6"><a class="link-muted" href="/2023/10/14/Android/kotlin_android_init_no_method/">小心Kotlin下的构造函数NoSuchMethodException</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Android/">Android</a> / <a class="link-muted" href="/categories/Android/Kotlin/">Kotlin</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2023-09-09T08:44:08.000Z">2023-09-09</time></p><p class="title is-6"><a class="link-muted" href="/2023/09/09/Android/seq_point_trace_report/">一种事件流埋点的实现方案</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%E9%97%AE%E9%A2%98%E4%B8%8E%E7%BB%8F%E9%AA%8C/">问题与经验</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">标签</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Android/"><span class="tag">Android</span><span class="tag is-grey-lightest">14</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Bug/"><span class="tag">Bug</span><span class="tag is-grey-lightest">11</span></a></div><div class="control"><a class="tags has-addons" href="/tags/C/"><span class="tag">C++</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Compose/"><span class="tag">Compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Gradle/"><span class="tag">Gradle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JNI/"><span class="tag">JNI</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/JSON/"><span class="tag">JSON</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Java/"><span class="tag">Java</span><span class="tag is-grey-lightest">23</span></a></div><div class="control"><a class="tags has-addons" href="/tags/K8S/"><span class="tag">K8S</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Kotlin/"><span class="tag">Kotlin</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/LeetCode/"><span class="tag">LeetCode</span><span class="tag is-grey-lightest">17</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rust/"><span class="tag">Rust</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spark/"><span class="tag">Spark</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%88%86%E4%BA%AB/"><span class="tag">分享</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E5%AE%89%E8%A3%85/"><span class="tag">安装</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%90%9E%E6%9C%BA/"><span class="tag">搞机</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"><span class="tag">操作系统</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%E8%AE%A1%E7%BB%84/"><span class="tag">计组</span><span class="tag is-grey-lightest">1</span></a></div></div></div></div></div><div class="column-right-shadow is-hidden-widescreen is-sticky"></div></div><div class="column column-right is-4-tablet is-4-desktop is-2-widescreen is-hidden-touch is-hidden-desktop-only order-3 is-sticky"><div class="card widget toc-scroll" id="toc"><div class="card-content"><div class="menu" style="max-height: 600px; overflow: auto;"><h3 class="menu-label">目录</h3><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-问题背景" href="#问题背景"><span>问题背景</span></a></li><li><a class="is-flex toc-item" id="toc-item-问题分析" href="#问题分析"><span>问题分析</span></a></li><li><a class="is-flex toc-item" id="toc-item-解决方法" href="#解决方法"><span>解决方法</span></a><ul class="menu-list toc"><li><a class="is-flex toc-item" id="toc-item-用内置类型" href="#用内置类型"><span>用内置类型</span></a></li><li><a class="is-flex toc-item" id="toc-item-自定义TypeAdapter" href="#自定义TypeAdapter"><span>自定义TypeAdapter</span></a></li></ul></li></ul></div></div><script type="text/javascript" async>
+        $(document).ready(function () { //参考自 https://github.com/ppoffice/hexo-theme-icarus/pull/616/files
+            var observerTopMargin;
+            var scrollObserver;
+            var headerElems = $(".headerlink");
+            var activeTocItem;
+        
+            function initIntersectionObserver(docHeight) {
+                observerTopMargin = docHeight;
+                scrollObserver = new IntersectionObserver(scrollCallBack,
+                    {
+                        root: null,  // viewpoint
+                        rootMargin: docHeight + "px 0px -80% 0px"  // cover top 30% of viewport to the top of document
+                    })
+            }
+        
+            function scrollCallBack(entries, observer) {
+                if ($(window).scrollTop() > observerTopMargin * 0.7) { 
+                    // User somehow scroll to 70% of observerTopMargin (which is inited as 200% document height)
+                    // Observer top margin need to extend to cover all the space to the top of the document
+                    initIntersectionObserver(observerTopMargin * 2)
+                    observer.disconnect();
+                    return;
+                }
+                let toActive;
+                if (entries[0].intersectionRatio == 1) {  // enter viewed area
+                    let entry = entries.reduce((u, v) => (u.target.toc_id > v.target.toc_id ? u : v));  // get the lowest item
+                    toActive = $("#toc-item-" + $(entry.target).attr("href").substr(1));
+                } else {
+                    let entry = entries.reduce((u, v) => (u.target.toc_id < v.target.toc_id ? u : v));  // get the highest item
+                    let idx = Math.max(entry.target.toc_id - 1, 0);
+                    toActive = $("#toc-item-" + $(headerElems[idx]).attr("href").substr(1));
+                }
+                if (activeTocItem) activeTocItem.removeClass("is-current");
+                activeTocItem = toActive
+                activeTocItem.addClass("is-current");
+            }
+        
+            initIntersectionObserver($(document).height() * 2);
+            headerElems.each(function (index, obj) {
+                obj.toc_id = index;
+                scrollObserver.observe(obj);
+            })
+        });</script></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/logo.png" alt="Keeplooking" height="28"></a><p class="size-small"><span>&copy; 2019 - 2024  Ken Chan</span>  </p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Fllow GitHub" href="https://github.com/kaiattrib"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdnjs.loli.net/ajax/libs/jquery/3.3.1/jquery.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/moment.js/2.22.2/moment-with-locales.min.js"></script><script>moment.locale("zh-CN");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'http://yoursite.com',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdnjs.loli.net/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="回到顶端" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><script src="https://cdnjs.loli.net/ajax/libs/lightgallery/1.6.8/js/lightgallery.min.js" defer></script><script src="https://cdnjs.loli.net/ajax/libs/justifiedGallery/3.7.0/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="想要查找什么..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"想要查找什么...","untitled":"(无标题)","posts":"文章","pages":"页面","categories":"分类","tags":"标签"});
+        });</script></body></html>
